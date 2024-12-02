@@ -1,4 +1,6 @@
 #pragma once
+
+#include <D3D11.h>
 #include <D3Dcompiler.h>
 #include <d3d11shader.h>
 #include <string>

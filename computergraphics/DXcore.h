@@ -88,11 +88,13 @@ public:
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
 		devicecontext->RSSetViewports(1, &viewport);
-		
+
+
 		D3D11_RASTERIZER_DESC rsdesc;
 		ZeroMemory(&rsdesc, sizeof(D3D11_RASTERIZER_DESC));
 		rsdesc.FillMode = D3D11_FILL_SOLID;
 		rsdesc.CullMode = D3D11_CULL_NONE;
+	    rsdesc.DepthClipEnable = TRUE;
 		device->CreateRasterizerState(&rsdesc, &rasterizerState);
 		devicecontext->RSSetState(rasterizerState);
 	}
@@ -100,7 +102,7 @@ public:
 
 
 	void clear() {
-		float ClearColour[4] = { 0.8f, 0.8f, 1.0f, 1.0f };
+		float ClearColour[4] = { 0.1f, 0.1f, 1.0f, 1.0f };
 		devicecontext->ClearRenderTargetView(backbufferRenderTargetView, ClearColour);
 		devicecontext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 

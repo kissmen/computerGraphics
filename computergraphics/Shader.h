@@ -18,25 +18,15 @@ public:
     ID3D11VertexShader* vertexShader;
     ID3D11PixelShader* pixelShader;
     ID3D11InputLayout* layout;
+    ID3D11Buffer* cb;
     vector<ConstantBuffer> psConstantBuffers;
     vector<ConstantBuffer> vsConstantBuffers;
     map<string, int> textureBindPointsVS;
     map<string, int> textureBindPointsPS;
-    bool hasLayout;
+    bool hasLayout = 1;
 
 
-    void init(string vs, string ps, DXcore &dx) {
-        
-            // Read the vertex shader and pixel shader .txt files
-            string vsShader = readFile(vs);
-            string psShader= readFile(ps);
-
-            // Compile & create vertex shader and pixel shader
-            compileVS(vsShader, dx.device);
-            compilePS(psShader, dx.device);
-
-            apply(&dx);
-        }
+   
 
     // map<string, Shader> shader;
     string readFile(string filename) {
@@ -47,36 +37,36 @@ public:
         return buffer.str();
     }
 
+    void init(string vs, string ps, DXcore& dx) {
+
+        // Read the vertex shader and pixel shader .txt files
+        string vsShader = readFile(vs);
+        string psShader = readFile(ps);
+
+        // Compile & create vertex shader and pixel shader
+        loadVS(&dx, vsShader);
+        loadPS(&dx, psShader);
+        compileVS(dx.device, vsShader);
+        compilePS(dx.device, psShader);
+
+        apply(&dx);
+    }
+
     void loadVS(DXcore* dx, string vertexShaderHLSL){
-        ID3DBlob* shader;
+        ID3DBlob* compiledVertexShader;
         ID3DBlob* status;
-        HRESULT hr = D3DCompile(vertexShaderHLSL.c_str(), strlen(vertexShaderHLSL.c_str()), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &shader, &status);
+        HRESULT hr = D3DCompile(vertexShaderHLSL.c_str(), strlen(vertexShaderHLSL.c_str()), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &compiledVertexShader, &status);
         if (FAILED(hr))
         {
             printf("%s\n", (char*)status->GetBufferPointer());
             exit(0);
         }
-        dx->device->CreateVertexShader(shader->GetBufferPointer(), shader->GetBufferSize(), NULL, &vertexShader);
+        dx->device->CreateVertexShader(compiledVertexShader->GetBufferPointer(), compiledVertexShader->GetBufferSize(), NULL, &vertexShader);
         ConstantBufferReflection reflection;
-        reflection.build(dx, shader, vsConstantBuffers, textureBindPointsVS, ShaderStage::VertexShader);
+        reflection.build(dx, compiledVertexShader, vsConstantBuffers, textureBindPointsVS, ShaderStage::VertexShader);
     }
 
-    void loadPS(DXcore* dx, string pixelShaderHLSL)
-    {
-        ID3DBlob* shader;
-        ID3DBlob* status;
-        HRESULT hr = D3DCompile(pixelShaderHLSL.c_str(), strlen(pixelShaderHLSL.c_str()), NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, &shader, &status);
-        if (FAILED(hr))
-        {
-            printf("%s\n", (char*)status->GetBufferPointer());
-            exit(0);
-        }
-        dx->device->CreatePixelShader(shader->GetBufferPointer(), shader->GetBufferSize(), NULL, &pixelShader);
-        ConstantBufferReflection reflection;
-        reflection.build(dx, shader, psConstantBuffers, textureBindPointsPS, ShaderStage::PixelShader);
-    }
-
-    void compileVS(string vertexShaderHLSL, ID3D11Device* &device) {
+    void compileVS(ID3D11Device*& device, string vertexShaderHLSL) {
         ID3DBlob* compiledVertexShader;
         ID3DBlob* status;
         HRESULT hr = D3DCompile(vertexShaderHLSL.c_str(), strlen(vertexShaderHLSL.c_str()), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &compiledVertexShader, &status);
@@ -92,16 +82,30 @@ public:
             { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COLOUR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
 
         };
 
-        device->CreateInputLayout(layoutDesc, 2, compiledVertexShader->GetBufferPointer(), compiledVertexShader->GetBufferSize(), &layout);
+        device->CreateInputLayout(layoutDesc, 4, compiledVertexShader->GetBufferPointer(), compiledVertexShader->GetBufferSize(), &layout);
        
-
+        compiledVertexShader->Release();
     }
 
-    void compilePS(string pixelShaderHLSL, ID3D11Device* &device) {
+    void loadPS(DXcore* dx, string pixelShaderHLSL)
+    {
+        ID3DBlob* compiledPixelShader;
+        ID3DBlob* status;
+        HRESULT hr = D3DCompile(pixelShaderHLSL.c_str(), strlen(pixelShaderHLSL.c_str()), NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, &compiledPixelShader, &status);
+        if (FAILED(hr))
+        {
+            printf("%s\n", (char*)status->GetBufferPointer());
+            exit(0);
+        }
+        dx->device->CreatePixelShader(compiledPixelShader->GetBufferPointer(), compiledPixelShader->GetBufferSize(), NULL, &pixelShader);
+        ConstantBufferReflection reflection;
+        reflection.build(dx, compiledPixelShader, psConstantBuffers, textureBindPointsPS, ShaderStage::PixelShader);
+    }
+
+    void compilePS(ID3D11Device*& device, string pixelShaderHLSL) {
         ID3DBlob* compiledPixelShader;
         ID3DBlob* status;
         HRESULT hr = D3DCompile(pixelShaderHLSL.c_str(), strlen(pixelShaderHLSL.c_str()), NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, &compiledPixelShader, &status);
