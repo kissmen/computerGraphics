@@ -10,6 +10,7 @@
 #include "d3d11shader.h"
 #include "shaderreflection.h"
 #include "mathLibrary.h"
+#include "Adapter.h"
 
 using namespace std;
 
@@ -19,10 +20,13 @@ public:
     ID3D11PixelShader* pixelShader;
     ID3D11InputLayout* layout;
     ID3D11Buffer* cb;
+    ID3D11ShaderResourceView* srv;
+    ID3D11SamplerState* state;
     vector<ConstantBuffer> psConstantBuffers;
     vector<ConstantBuffer> vsConstantBuffers;
     map<string, int> textureBindPointsVS;
     map<string, int> textureBindPointsPS;
+    map<string, int> textureBindPoints;
     bool hasLayout = 1;
 
 
@@ -138,7 +142,22 @@ public:
         updateConstant(constantBufferName, variableName, data, psConstantBuffers);
     }
 
+    void updateTextureVS(DXcore* dx, string name, ID3D11ShaderResourceView* srv) {
+        updateTexture(dx, 1, &srv);
+    }
+
+    void updateTexturePS(DXcore *dx, string name, ID3D11ShaderResourceView* srv) {
+        updateTexture(dx, 1, &srv);
+    }
     
+    void updateSamplerVS(DXcore* dx, string name, ID3D11SamplerState* state) {
+        updateSampler(dx, 1, &srv);
+        dx.devicecontext->PSSetSamplers(0, 1, &state);
+    }
+    void updateSamplerPS(DXcore* dx, string name, ID3D11SamplerState* state) {
+        updateSampler(dx, 1, &srv);
+        dx.devicecontext->PSSetSamplers(0, 1, &state);
+    }
 
     void apply(DXcore* dx) {
         if (hasLayout == 1) {

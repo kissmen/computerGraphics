@@ -22,9 +22,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nC
     shader.init("vertexShader.txt", "pixelShader.txt", dx);
     plane.init(&dx);
 
-    Matrix44 defaultMatrix;
+    Matrix44 defaultM;
 
-    Vec4 eye(2.0f, 1.0f, 2.0f, 1.0f);
+    Vec4 eye(100.0f, 80.0f, 100.0f, 1.0f);
     Vec4 center(0.0f, 0.0f, 0.0f, 1.0f);
     Vec4 up(0.0f, 1.0f, 0.0f, 1.0f);
 
@@ -37,14 +37,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nC
 
             win.processMessages();
 
-            Matrix44 viewMatrix = transform.viewMatrix;
-            Matrix44 projectionMatrix = transform.projectionMatrix;
-            Matrix44 vp = viewMatrix * projectionMatrix;
+            Matrix44 viewM = transform.viewMatrix;
+            Matrix44 projectionM = transform.projectionMatrix;
+            Matrix44 vp = viewM * projectionM;
 
 
             dx.clear();
 
-            shader.updateConstantVS("staticMeshBuffer", "W", &defaultMatrix);
+            shader.updateConstantVS("staticMeshBuffer", "W", &defaultM);
             shader.updateConstantVS("staticMeshBuffer", "VP", &vp);
             shader.apply(&dx);
            // triangle.draw(dx.devicecontext);

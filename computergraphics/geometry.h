@@ -54,7 +54,7 @@ public:
 
 class Plane {
 public:
-	Mesh mesh;
+	Mesh plane;
 	STATIC_VERTEX addVertex(Vec3 p, Vec3 n, float tu, float tv)
 	{
 		STATIC_VERTEX v;
@@ -68,7 +68,7 @@ public:
 		return v;
 	}
 
-	// Initialize the plane geometry
+	// Initialize the plane
 	void init(DXcore* dx) {
 		vector<STATIC_VERTEX> vertices;
 
@@ -85,34 +85,34 @@ public:
 		indices.push_back(1); indices.push_back(2); indices.push_back(3);
 
 		// Use the Mesh class to initialize vertex and index buffers
-		mesh.init(vertices, indices, dx->device);
+		plane.init(vertices, indices, dx->device);
 	}
 
 	
 
 	void draw(ID3D11DeviceContext* devicecontext) {
-		mesh.draw(devicecontext);
+		plane.draw(devicecontext);
 	}
 };
   
 
-class Model {
-public:
-	vector<Mesh> meshes;
-
-	/*GEMLoader::GEMModelLoader loader;
-	vector<GEMLoader::GEMMesh> gemmeshes;
-	loader.load(filename, gemmeshes);
-	for (int i = 0; i < gemmeshes.size(); i++) {
-		Mesh mesh;
-		vector<STATIC_VERTEX> vertices;
-		for (int j = 0; j < gemmeshes[i].verticesStatic.size(); j++) {
-			STATIC_VERTEX v;
-			memcpy(&v, &gemmeshes[i].verticesStatic[j], sizeof(STATIC_VERTEX));
-			vertices.push_back(v);
-		}
-		mesh.init(core, vertices, gemmeshes[i].indices);
-		meshes.push_back(mesh);
-	}*/
-
-};
+//class Model {
+//public:
+//	vector<Mesh> tree;
+//
+//	GEMLoader::GEMModelLoader loader;
+//	vector<GEMLoader::GEMMesh> gemmeshes;
+//	loader.load(filename, gemmeshes);
+//	for (int i = 0; i < gemmeshes.size(); i++) {
+//		Mesh mesh;
+//		vector<STATIC_VERTEX> vertices;
+//		for (int j = 0; j < gemmeshes[i].verticesStatic.size(); j++) {
+//			STATIC_VERTEX v;
+//			memcpy(&v, &gemmeshes[i].verticesStatic[j], sizeof(STATIC_VERTEX));
+//			vertices.push_back(v);
+//		}
+//		mesh.init(core, vertices, gemmeshes[i].indices);
+//		meshes.push_back(mesh);
+//	}
+//
+//};

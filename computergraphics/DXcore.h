@@ -102,7 +102,7 @@ public:
 
 
 	void clear() {
-		float ClearColour[4] = { 0.1f, 0.1f, 1.0f, 1.0f };
+		float ClearColour[4] = { 0.1f, 0.1f, 0.25f, 1.0f };
 		devicecontext->ClearRenderTargetView(backbufferRenderTargetView, ClearColour);
 		devicecontext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
