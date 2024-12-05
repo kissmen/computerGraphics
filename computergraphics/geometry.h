@@ -73,10 +73,10 @@ public:
 		vector<STATIC_VERTEX> vertices;
 
 		// Define vertices for the plane
-		vertices.push_back(addVertex(Vec3(-15, 0, -15), Vec3(0, 1, 0), 0, 0));
-		vertices.push_back(addVertex(Vec3(15, 0, -15), Vec3(0, 1, 0), 1, 0));
-		vertices.push_back(addVertex(Vec3(-15, 0, 15), Vec3(0, 1, 0), 0, 1));
-		vertices.push_back(addVertex(Vec3(15, 0, 15), Vec3(0, 1, 0), 1, 1));
+		vertices.push_back(addVertex(Vec3(-150, 0, -150), Vec3(0, 1, 0), 0, 0));
+		vertices.push_back(addVertex(Vec3(150, 0, -150), Vec3(0, 1, 0), 1, 0));
+		vertices.push_back(addVertex(Vec3(-150, 0, 150), Vec3(0, 1, 0), 0, 1));
+		vertices.push_back(addVertex(Vec3(150, 0, 150), Vec3(0, 1, 0), 1, 1));
 
 		vector<unsigned int> indices;
 

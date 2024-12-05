@@ -142,7 +142,7 @@ public:
         updateConstant(constantBufferName, variableName, data, psConstantBuffers);
     }
 
-    void updateTextureVS(DXcore* dx, string name, ID3D11ShaderResourceView* srv) {
+   /* void updateTextureVS(DXcore* dx, string name, ID3D11ShaderResourceView* srv) {
         updateTexture(dx, 1, &srv);
     }
 
@@ -157,7 +157,7 @@ public:
     void updateSamplerPS(DXcore* dx, string name, ID3D11SamplerState* state) {
         updateSampler(dx, 1, &srv);
         dx.devicecontext->PSSetSamplers(0, 1, &state);
-    }
+    }*/
 
     void apply(DXcore* dx) {
         if (hasLayout == 1) {

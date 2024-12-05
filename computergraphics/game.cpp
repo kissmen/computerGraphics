@@ -9,49 +9,53 @@
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nCmdshow) {
     Window win;
-    DXcore dx;
-    Shader shader;
-    Triangle triangle;
-    Plane plane;
-    Transform transform;
-
     win.init(1024, 1024, "My Window");
+    DXcore dx;
     dx.init(1024, 1024, win.hwnd, false);
-    triangle.init(dx.device);
-    triangle.createBuffer(dx.device);
+    Shader shader;
     shader.init("vertexShader.txt", "pixelShader.txt", dx);
+
+    Plane plane;
     plane.init(&dx);
 
     Matrix44 defaultM;
-
-    Vec4 eye(100.0f, 80.0f, 100.0f, 1.0f);
+    Vec4 eye(10.0f, 30.0f, 10.0f, 1.0f);
     Vec4 center(0.0f, 0.0f, 0.0f, 1.0f);
     Vec4 up(0.0f, 1.0f, 0.0f, 1.0f);
+    Camera camera(eye, center, up);
 
-    transform.setViewMatrix(eye, center, up);
-    transform.setProjectionMatrix(60.0f, 1.0f, 0.1f, 1000.0f);
+    // Center mouse to window middle initially
+    win.centerCursor();
+    bool mouseCaptured = true;
+    bool firstMouseInput = true;
+    win.setCursorVisibility(false);
 
-    
-        while (true)
-        {
+    while (true) {
+        win.processMessages();
 
-            win.processMessages();
-
-            Matrix44 viewM = transform.viewMatrix;
-            Matrix44 projectionM = transform.projectionMatrix;
-            Matrix44 vp = viewM * projectionM;
-
-
-            dx.clear();
-
-            shader.updateConstantVS("staticMeshBuffer", "W", &defaultM);
-            shader.updateConstantVS("staticMeshBuffer", "VP", &vp);
-            shader.apply(&dx);
-           // triangle.draw(dx.devicecontext);
-            plane.draw(dx.devicecontext);
-
-             dx.present();
+        if (win.keys[VK_ESCAPE]) {
+            win.keys[VK_ESCAPE] = false;
+            win.toggleMouseCapture(mouseCaptured, firstMouseInput);
         }
-       
 
+        if (mouseCaptured) {
+            camera.updateFromKeyboard(win);
+            camera.updateFromMouse(win, firstMouseInput);
+        }
+
+        // Update matrices
+        Matrix44 viewM = camera.transform.viewMatrix;
+        Matrix44 projectionM = camera.transform.projectionMatrix;
+        Matrix44 vp = viewM * projectionM;
+
+        // Render
+        dx.clear();
+        shader.updateConstantVS("staticMeshBuffer", "W", &defaultM);
+        shader.updateConstantVS("staticMeshBuffer", "VP", &vp);
+        shader.apply(&dx);
+        plane.draw(dx.devicecontext);
+        dx.present();
+    }
+
+    return 0;
 }

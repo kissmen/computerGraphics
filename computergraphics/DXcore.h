@@ -16,7 +16,7 @@ public:
 	ID3D11Texture2D* depthbuffer;
 
 	ID3D11RasterizerState* rasterizerState;
-	//ID3D11DepthStencilState* depthStencilState;  // For depthpipe if use it
+	ID3D11DepthStencilState* depthStencilState;  // For depthpipe if use it
 	//ID3D11BlendState* blendState;  // For blending if use it
 
 
@@ -97,6 +97,13 @@ public:
 	    rsdesc.DepthClipEnable = TRUE;
 		device->CreateRasterizerState(&rsdesc, &rasterizerState);
 		devicecontext->RSSetState(rasterizerState);
+
+		D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+		dsDesc.DepthEnable = TRUE;
+		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		device->CreateDepthStencilState(&dsDesc, &depthStencilState);
+		devicecontext->OMSetDepthStencilState(depthStencilState, 1);
 	}
 
 
