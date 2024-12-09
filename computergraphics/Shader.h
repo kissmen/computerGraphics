@@ -26,7 +26,8 @@ public:
     vector<ConstantBuffer> vsConstantBuffers;
     map<string, int> textureBindPointsVS;
     map<string, int> textureBindPointsPS;
-    map<string, int> textureBindPoints;
+    map<string, ID3D11ShaderResourceView*> psTextures;
+    map<string, ID3D11SamplerState*> psSamplers;
     bool hasLayout = 1;
 
 
@@ -142,22 +143,20 @@ public:
         updateConstant(constantBufferName, variableName, data, psConstantBuffers);
     }
 
-   /* void updateTextureVS(DXcore* dx, string name, ID3D11ShaderResourceView* srv) {
-        updateTexture(dx, 1, &srv);
-    }
-
-    void updateTexturePS(DXcore *dx, string name, ID3D11ShaderResourceView* srv) {
-        updateTexture(dx, 1, &srv);
+    // Update the texture for the pixel shader and store it for applying later
+    void updateTexturePS(DXcore* dx, string name, ID3D11ShaderResourceView* textureSRV) {
+        // Ensure the texture name is known by reflection
+        if (textureBindPointsPS.find(name) != textureBindPointsPS.end()) {
+            psTextures[name] = textureSRV;
+        }
     }
     
-    void updateSamplerVS(DXcore* dx, string name, ID3D11SamplerState* state) {
-        updateSampler(dx, 1, &srv);
-        dx.devicecontext->PSSetSamplers(0, 1, &state);
+    // Update the sampler for the pixel shader and store it for applying later
+    void updateSamplerPS(DXcore* dx, string name, ID3D11SamplerState* samplerState) {
+        if (textureBindPointsPS.find(name) != textureBindPointsPS.end()) {
+            psSamplers[name] = samplerState;
+        }
     }
-    void updateSamplerPS(DXcore* dx, string name, ID3D11SamplerState* state) {
-        updateSampler(dx, 1, &srv);
-        dx.devicecontext->PSSetSamplers(0, 1, &state);
-    }*/
 
     void apply(DXcore* dx) {
         if (hasLayout == 1) {
@@ -168,6 +167,8 @@ public:
         }
         dx->devicecontext->VSSetShader(vertexShader, NULL, 0);
         dx->devicecontext->PSSetShader(pixelShader, NULL, 0);
+
+        // Upload constants
         for (int i = 0; i < vsConstantBuffers.size(); i++)
         {
             vsConstantBuffers[i].upload(dx);
@@ -176,9 +177,19 @@ public:
         {
             psConstantBuffers[i].upload(dx);
         }
+
+        // Set textures
+        for (auto& tex : psTextures) {
+            int slot = textureBindPointsPS[tex.first];
+            dx->devicecontext->PSSetShaderResources(slot, 1, &tex.second);
+        }
+
+        // Set samplers
+        for (auto& samp : psSamplers) {
+            int slot = textureBindPointsPS[samp.first];
+            dx->devicecontext->PSSetSamplers(slot, 1, &samp.second);
+        }
     }
-
-
 };
 
 

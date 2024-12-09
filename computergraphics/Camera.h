@@ -13,18 +13,31 @@ public:
     Vec4 up;
     Transform transform;
 
-    float speed = 0.08f;
+    float speed = 120.0f;
     float yaw = 0.0f;
     float pitch = 0.0f;
 
-    Camera(const Vec4& _eye, const Vec4& _center, const Vec4& _up)
-        : eye(_eye), center(_center), up(_up) {
+    float fov = 60.0f;     // view field
+    float nearPlane = 0.1f;
+    float farPlane = 20000.0f;
+
+    float width;
+    float height;
+
+    Camera(const Vec4& _eye, const Vec4& _center, const Vec4& _up, float w, float h)
+        : eye(_eye), center(_center), up(_up), width(w), height(h)
+    {
         Vec4 forward = (center - eye).normalize();
         yaw = atan2f(forward.z, forward.x);
         pitch = asinf(forward.y);
 
         updateViewMatrix();
-        transform.setProjectionMatrix(60.0f, 1.0f, 0.1f, 1000.0f);
+        updateProjectionMatrix(); // get aspect by win width and height
+    }
+
+    void updateProjectionMatrix() {
+        float aspect = width / height;
+        transform.setProjectionMatrix(fov, aspect, nearPlane, farPlane);
     }
 
     void updateViewMatrix() {
@@ -39,44 +52,51 @@ public:
         transform.setViewMatrix(eye, center, up);
     }
 
-    void moveForward() {
+    // call when win changes
+    void onWindowResize(float newWidth, float newHeight) {
+        width = newWidth;
+        height = newHeight;
+        updateProjectionMatrix();
+    }
+
+    void moveForward(float dt) {
         Vec4 forward = (center - eye).normalize();
         forward.y = 0.0f;
         forward = forward.normalize();
 
-        eye += forward * speed;
-        center += forward * speed;
+        eye += forward * speed * dt;
+        center += forward * speed * dt;
         updateViewMatrix();
     }
 
-    void moveBackward() {
+    void moveBackward(float dt) {
         Vec4 forward = (center - eye).normalize();
         forward.y = 0.0f;
         forward = forward.normalize();
 
-        eye -= forward * speed;
-        center -= forward * speed;
+        eye -= forward * speed * dt;
+        center -= forward * speed * dt;
         updateViewMatrix();
     }
 
-    void moveLeft() {
+    void moveLeft(float dt) {
         Vec4 forward = (center - eye).normalize();
         Vec4 right = up.Cross(forward).normalize();
-        eye += right * speed;
-        center += right * speed;
+        eye += right * speed * dt;
+        center += right * speed * dt;
         updateViewMatrix();
     }
 
-    void moveRight() {
+    void moveRight(float dt) {
         Vec4 forward = (center - eye).normalize();
         Vec4 right = up.Cross(forward).normalize();
-        eye -= right * speed;
-        center -= right * speed;
+        eye -= right * speed * dt;
+        center -= right * speed * dt;
         updateViewMatrix();
     }
 
-    void processMouseInput(float deltaX, float deltaY) {
-        const float sensitivity = 0.0008f; // Adjust as needed
+    void mouseInput(float deltaX, float deltaY) {
+        const float sensitivity = 0.0012f;
         yaw += deltaX * sensitivity;
         pitch -= deltaY * sensitivity;
 
@@ -87,36 +107,42 @@ public:
         updateViewMatrix();
     }
 
-    void updateFromKeyboard(const Window& window) {
-        if (window.keys['W']) {
-            moveForward();
+    void updateFromKeyboard(const Window& win, float dt) {
+        if (win.keys['W']) {
+            moveForward(dt);
         }
-        if (window.keys['S']) {
-            moveBackward();
+        if (win.keys['S']) {
+            moveBackward(dt);
         }
-        if (window.keys['A']) {
-            moveLeft();
+        if (win.keys['A']) {
+            moveLeft(dt);
         }
-        if (window.keys['D']) {
-            moveRight();
+        if (win.keys['D']) {
+            moveRight(dt);
         }
     }
 
-    void updateFromMouse(const Window& window, bool& firstMouseInput) {
-        float centerX = window.width / 2.0f;
-        float centerY = window.height / 2.0f;
+    void updateFromRawInput(float rawDeltaX, float rawDeltaY, float dt) {
+        mouseInput(rawDeltaX, rawDeltaY);
+    }
 
-        float deltaX = static_cast<float>(window.mousex) - centerX;
-        float deltaY = static_cast<float>(window.mousey) - centerY;
+    void updateFromMouse(const Window& win, bool& firstMouseInput, float dt) {
+        float centerX = win.width / 2.0f;
+        float centerY = win.height / 2.0f;
+
+        float deltaX = (float)(win.mousex - centerX);
+        float deltaY = (float)(win.mousey - centerY);
 
         if (!firstMouseInput) {
-            processMouseInput(deltaX, deltaY);
+            mouseInput(deltaX, deltaY);
         }
         else {
             firstMouseInput = false;
         }
 
-        // Center the cursor
-        const_cast<Window&>(window).centerCursor();
+        const_cast<Window&>(win).centerCursor();
     }
+
+
+
 };

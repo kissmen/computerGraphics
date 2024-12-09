@@ -5,24 +5,50 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "geometry.h"
+#include "texture.h"
+#include "material.h"
+#include "render.h"
+#include "skydome.h"
 #include "mathLibrary.h"
+
+#include <chrono>
+using namespace std;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nCmdshow) {
     Window win;
-    win.init(1024, 1024, "My Window");
+    win.init(1920, 1080, "My Window");
+    win.useRawInput = true;
+    win.registerRawInput();
     DXcore dx;
-    dx.init(1024, 1024, win.hwnd, false);
+    dx.init(1920, 1080, win.hwnd, false);
+    TextureManager textureManager;
+    vector<std::string> textureFiles = {
+    "Textures/SandWithHands_basecolor.png",
+    "Textures/bamboo branch.png",
+    "Textures/bark09.png",
+    "Textures/plant02.png",
+    "Textures/sky.hdr",
+    };
+    textureManager.init(dx, textureFiles);
     Shader shader;
     shader.init("vertexShader.txt", "pixelShader.txt", dx);
-
+    shader.updateSamplerPS(&dx, "samp", textureManager.getSamplerState());
+    shader.apply(&dx);
     Plane plane;
-    plane.init(&dx);
-
+    plane.init(&dx, textureManager, "Textures/SandWithHands_basecolor.png"); 
+    Tree oak;
+    oak.init(&dx, textureManager, "Models/bamboo.gem");
+    SkyDome sky;
+    sky.init(dx, textureManager, "Textures/sky.hdr");
+  //  Matrix44 world;
+  //  world.identity();
+  //  world = Matrix44::scaling(Vec3(0.2f, 0.2f, 0.2f));
     Matrix44 defaultM;
-    Vec4 eye(10.0f, 30.0f, 10.0f, 1.0f);
+    Vec4 eye(10.0f, 80.0f, 10.0f, 1.0f);
     Vec4 center(0.0f, 0.0f, 0.0f, 1.0f);
     Vec4 up(0.0f, 1.0f, 0.0f, 1.0f);
-    Camera camera(eye, center, up);
+    Camera camera(eye, center, up, (float)win.width, (float)win.height);
+
 
     // Center mouse to window middle initially
     win.centerCursor();
@@ -30,18 +56,31 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nC
     bool firstMouseInput = true;
     win.setCursorVisibility(false);
 
+    auto lt = chrono::high_resolution_clock::now();
+
     while (true) {
         win.processMessages();
+
+        auto currentTime = chrono::high_resolution_clock::now();
+        chrono::duration<float> dtDuration = currentTime - lt;
+        float dt = dtDuration.count();
+        lt = currentTime;
+
+        // Cap deltaTime to avoid issues when the application is minimized or paused
+        if (dt > 0.1f) {
+            dt = 0.1f;
+        }
+        camera.updateFromKeyboard(win, dt);
 
         if (win.keys[VK_ESCAPE]) {
             win.keys[VK_ESCAPE] = false;
             win.toggleMouseCapture(mouseCaptured, firstMouseInput);
         }
 
-        if (mouseCaptured) {
-            camera.updateFromKeyboard(win);
-            camera.updateFromMouse(win, firstMouseInput);
-        }
+        camera.updateFromRawInput((float)win.rawMouseDeltaX, (float)win.rawMouseDeltaY, dt);
+        win.rawMouseDeltaX = 0;
+        win.rawMouseDeltaY = 0;
+
 
         // Update matrices
         Matrix44 viewM = camera.transform.viewMatrix;
@@ -50,10 +89,20 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nC
 
         // Render
         dx.clear();
+
+        dx.setDepthStateSky(); // Read-only depth state
+        sky.draw(&dx, shader, camera);
+        dx.setDepthStateDefault(); // Restore of depth state
+
+        // Update WVP Matrix then draw
+
         shader.updateConstantVS("staticMeshBuffer", "W", &defaultM);
         shader.updateConstantVS("staticMeshBuffer", "VP", &vp);
         shader.apply(&dx);
-        plane.draw(dx.devicecontext);
+
+        plane.draw(&dx, shader);
+        oak.draw(&dx, shader);
+
         dx.present();
     }
 

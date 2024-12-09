@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Adapter.h"
 #include "window.h"
 #include "memory.h"
@@ -16,7 +16,8 @@ public:
 	ID3D11Texture2D* depthbuffer;
 
 	ID3D11RasterizerState* rasterizerState;
-	ID3D11DepthStencilState* depthStencilState;  // For depthpipe if use it
+	ID3D11DepthStencilState* defaultDepthState;
+	ID3D11DepthStencilState* skyDepthState;
 	//ID3D11BlendState* blendState;  // For blending if use it
 
 
@@ -102,11 +103,21 @@ public:
 		dsDesc.DepthEnable = TRUE;
 		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		device->CreateDepthStencilState(&dsDesc, &depthStencilState);
-		devicecontext->OMSetDepthStencilState(depthStencilState, 1);
+		device->CreateDepthStencilState(&dsDesc, &defaultDepthState);
+
+		D3D11_DEPTH_STENCIL_DESC skyDSDesc = dsDesc;
+		skyDSDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		skyDSDesc.DepthFunc = D3D11_COMPARISON_ALWAYS; // 修改比较函数为ALWAYS
+		device->CreateDepthStencilState(&skyDSDesc, &skyDepthState);
 	}
 
+	void setDepthStateSky() {
+		devicecontext->OMSetDepthStencilState(skyDepthState, 0);
+	}
 
+	void setDepthStateDefault() {
+		devicecontext->OMSetDepthStencilState(defaultDepthState, 0);
+	}
 
 	void clear() {
 		float ClearColour[4] = { 0.1f, 0.1f, 0.25f, 1.0f };

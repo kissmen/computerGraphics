@@ -1,16 +1,13 @@
 #include "window.h"
 
-// Window* window
+// Window* window;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    // Retrieve the Window* associated with the HWND
     Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-    switch (msg)
-    {
+    switch (msg) {
     case WM_CREATE:
     {
-        // Store the Window* in GWLP_USERDATA
         CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
         window = reinterpret_cast<Window*>(pCreate->lpCreateParams);
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)window);
@@ -55,15 +52,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_MOUSEMOVE:
     {
-        if (window) {
+        if (window && !window->useRawInput) {
             window->updateMouse(WINDOW_GET_X_LPARAM(lParam), WINDOW_GET_Y_LPARAM(lParam));
         }
         return 0;
     }
-    default:
+    case WM_INPUT:
     {
-        return DefWindowProc(hwnd, msg, wParam, lParam);
+        if (window && window->useRawInput) {
+            window->handleRawInput(lParam);
+        }
+        return 0;
     }
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
     }
 }
 
@@ -103,13 +105,16 @@ void Window::init(int window_width, int window_height, const std::string window_
         NULL,
         NULL,
         hinstance,
-        this // Pass 'this' here
+        this
     );
 
     memset(keys, 0, sizeof(keys));
     memset(mouseButtons, 0, sizeof(mouseButtons));
     mousex = 0;
     mousey = 0;
+    if (useRawInput) {
+        registerRawInput();
+    }
 }
 
 void Window::updateMouse(int x, int y) {
@@ -146,4 +151,41 @@ void Window::centerCursor() {
 
 void Window::setCursorVisibility(bool visible) {
     ShowCursor(visible);
+}
+
+void Window::registerRawInput() {
+    RAWINPUTDEVICE rid;
+    rid.usUsagePage = 0x01;    // HID_USAGE_PAGE_GENERIC
+    rid.usUsage = 0x02;        // HID_USAGE_GENERIC_MOUSE
+    rid.dwFlags = RIDEV_INPUTSINK; // Accepts raw input from the mouse
+    rid.hwndTarget = hwnd;
+    
+    if (!RegisterRawInputDevices(&rid, 1, sizeof(rid))) {
+        MessageBox(hwnd, L"Failed to register raw input device!", L"Error", MB_OK | MB_ICONERROR);
+    }
+}
+
+void Window::handleRawInput(LPARAM lParam) {
+    UINT dwSize = 0;
+    GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+    if (dwSize == 0) return;
+    LPBYTE lpb = new BYTE[dwSize];
+    if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize) {
+        delete[] lpb;
+        return;
+    }
+
+    RAWINPUT* raw = (RAWINPUT*)lpb;
+    if (raw->header.dwType == RIM_TYPEMOUSE) {
+        // Relative displacement
+        LONG relX = raw->data.mouse.lLastX;
+        LONG relY = raw->data.mouse.lLastY;
+
+        rawMouseDeltaX = relX;
+        rawMouseDeltaY = relY;
+        mousex += relX;
+        mousey += relY;
+    }
+
+    delete[] lpb;
 }

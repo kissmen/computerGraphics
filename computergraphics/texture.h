@@ -1,130 +1,180 @@
-//#pragma once
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "stb_image.h"
-//#include "Adapter.h"
-//#include "DXcore.h"
-//#include <map>
-//
-//class Texture {
-//    ID3D11Texture2D* texture;
-//    ID3D11ShaderResourceView* srv;
-//    ID3D11SamplerState* state;
-//
-//public:
-//    void init(DXcore& dx, int width, int height, int channels, DXGI_FORMAT format,unsigned char data){
-//        D3D11_TEXTURE2D_DESC texDesc;
-//        memset(&texDesc, 0, sizeof(D3D11_TEXTURE2D_DESC));
-//        texDesc.Width = width;
-//        texDesc.Height = height;
-//        texDesc.MipLevels = 1;
-//        texDesc.ArraySize = 1;
-//        texDesc.Format = format;
-//        texDesc.SampleDesc.Count = 1;
-//        texDesc.Usage = D3D11_USAGE_DEFAULT;
-//        texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-//        texDesc.CPUAccessFlags = 0;
-//        DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-//
-//        D3D11_SUBRESOURCE_DATA initData;
-//        memset(&initData, 0, sizeof(D3D11_SUBRESOURCE_DATA));
-//        initData.pSysMem = data;
-//        initData.SysMemPitch = width * channels;
-//        dx.device->CreateTexture2D(&texDesc, &initData, &texture);
-//
-//        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-//        srvDesc.Format = format;
-//        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-//        srvDesc.Texture2D.MostDetailedMip = 0;
-//        srvDesc.Texture2D.MipLevels = 1;
-//        dx.device->CreateShaderResourceView(texture, &srvDesc, &srv);
-//
-//        D3D11_SAMPLER_DESC samplerDesc;
-//        ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-//        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-//        samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-//        samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-//        samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-//        samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-//        samplerDesc.MinLOD = 0;
-//        samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-//        dx.CreateSamplerState(&samplerDesc, &state);
-//
-//        void free() {
-//            srv->Release();
-//            tex->Relaese();
-//
-//        }
-//
-//        ~Texture() {
-//            free()
-//        }
-//
-//    unsigned char* texels = stbi_load(filename.c_str(), &width, &height, &channels, 0);
-//    if (channels == 3) {
-//        channels = 4;
-//        unsigned char* texelsWithAlpha = new unsigned char[width * height * channels];
-//        for (int i = 0; i < (width * height); i++) {
-//            texelsWithAlpha[i * 4] = texels[i * 3];
-//            texelsWithAlpha[(i * 4) + 1] = texels[(i * 3) + 1];
-//            texelsWithAlpha[(i * 4) + 2] = texels[(i * 3) + 2];
-//            texelsWithAlpha[(i * 4) + 3] = 255;
-//        }
-//        // Initialize texture using width, height, channels, and texelsWithAlpha
-//        delete[] texelsWithAlpha;
-//    }
-//    else {
-//        // Initialize texture using width, height, channels, and texels
-//    }
-//    stbi_image_free(texels);
-//    }
-//};
-//
-//class Sampler {
-//    ID3D11SamplerState* state;
-//public:
-//    D3D11_SAMPLER_DESC samplerDesc;
-//    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-//    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-//    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-//    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-//    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-//    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-//    samplerDesc.MinLOD = 0;
-//    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-//    device->CreateSamplerState(&samplerDesc, &state);
-//
-//};
-//
-//class TextureManager
-//{
-//public:
-//    map<string, Texture*> textures;
-//    void load(DXcore* core, string filename)
-//    {
-//        map<string, Texture*>::iterator it = textures.find(filename);
-//        if (it != textures.end())
-//        {
-//            return;
-//        }
-//        Texture* texture = new Texture();
-//        texture->load(core, filename);
-//        textures.insert({ filename, texture });
-//    }
-//    ID3D11ShaderResourceView* find(string name)
-//    {
-//        return textures[name]->srv;
-//    }
-//    void unload(std::string name)
-//    {
-//        textures[name]->free();
-//        textures.erase(name);
-//    }
-//    ~TextureManager()
-//    {
-//        for (auto it = textures.cbegin(); it != textures.cend(); )
-//        {
-//            it->second->free();
-//            textures.erase(it++);
-//        }
-//    }
-//};
+#pragma once
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "Adapter.h"
+#include "DXcore.h"
+#include <map>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <iostream>
+
+class Texture {
+    ID3D11Texture2D* texture = nullptr;
+    ID3D11ShaderResourceView* srv = nullptr;
+
+public:
+    bool loadFromMemory(DXcore* dx, const unsigned char* data, size_t size) {
+        int width, height, channels;
+        unsigned char* texels = stbi_load_from_memory(data, (int)size, &width, &height, &channels, 0);
+        if (!texels) {
+            return false;
+        }
+        
+        if (channels == 3) {
+            unsigned char* texelsWithAlpha = new unsigned char[width * height * 4];
+            for (int i = 0; i < width * height; i++) {
+                texelsWithAlpha[i * 4 + 0] = texels[i * 3 + 0];
+                texelsWithAlpha[i * 4 + 1] = texels[i * 3 + 1];
+                texelsWithAlpha[i * 4 + 2] = texels[i * 3 + 2];
+                texelsWithAlpha[i * 4 + 3] = 255;
+            }
+            stbi_image_free(texels);
+            texels = texelsWithAlpha;
+            channels = 4;
+        }
+
+        D3D11_TEXTURE2D_DESC texDesc;
+        ZeroMemory(&texDesc, sizeof(texDesc));
+        texDesc.Width = width;
+        texDesc.Height = height;
+        texDesc.MipLevels = 1;
+        texDesc.ArraySize = 1;
+        texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+        D3D11_SUBRESOURCE_DATA initData;
+        ZeroMemory(&initData, sizeof(initData));
+        initData.pSysMem = texels;
+        initData.SysMemPitch = width * channels;
+
+        HRESULT hr = dx->device->CreateTexture2D(&texDesc, &initData, &texture);
+        stbi_image_free(texels);
+        if (FAILED(hr)) {
+            return false;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+        ZeroMemory(&srvDesc, sizeof(srvDesc));
+        srvDesc.Format = texDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = 1;
+
+        hr = dx->device->CreateShaderResourceView(texture, &srvDesc, &srv);
+        if (FAILED(hr)) return false;
+
+        return true;
+    }
+
+    ID3D11ShaderResourceView* getSRV() { return srv; }
+
+    void free() {
+        if (srv) { srv->Release(); srv = nullptr; }
+        if (texture) { texture->Release(); texture = nullptr; }
+    }
+
+    ~Texture() {
+        free();
+    }
+};
+
+class Sampler {
+    ID3D11SamplerState* state;
+public:
+    bool init(DXcore& dx) {
+        D3D11_SAMPLER_DESC samplerDesc;
+        ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+        samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+        samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+        samplerDesc.MipLODBias = 0.0f;
+        samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        samplerDesc.MinLOD = 0;
+        samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+        HRESULT hr = dx.device->CreateSamplerState(&samplerDesc, &state);
+        return SUCCEEDED(hr);
+    }
+
+    ID3D11SamplerState* getState() { return state; }
+
+    void free() {
+        if (state) {
+            state->Release();
+            state = nullptr;
+        }
+    }
+
+    ~Sampler() {
+        free();
+    }
+};
+
+class TextureManager {
+public:
+    std::map<std::string, Texture*> textures;
+    Sampler sampler;
+
+    bool init(DXcore& dx, const std::vector<std::string>& filenames) {
+        // Initialize sampler once
+        if (!sampler.init(dx)) return false;
+
+        for (auto& filename : filenames) {
+            
+            std::ifstream file(filename, std::ios::binary);
+            if (!file) {
+                std::cerr << "Failed to open texture file: " << filename << std::endl;
+                continue;
+            }
+
+            std::ostringstream oss;
+            oss << file.rdbuf();
+            std::string fileContent = oss.str();
+
+            Texture* texture = new Texture();
+            if (!texture->loadFromMemory(&dx, (const unsigned char*)fileContent.data(), fileContent.size())) {
+                std::cerr << "Failed to load texture from memory: " << filename << std::endl;
+                delete texture;
+                continue;
+            }
+
+            textures.insert({ filename, texture });
+        }
+
+        return true;
+    }
+
+    ID3D11ShaderResourceView* find(const std::string& name) {
+        auto it = textures.find(name);
+        if (it != textures.end()) {
+            return it->second->getSRV();
+        }
+        return nullptr;
+    }
+
+    ID3D11SamplerState* getSamplerState() {
+        return sampler.getState();
+    }
+
+    void unload(const std::string& name) {
+        if (textures.find(name) != textures.end()) {
+            textures[name]->free();
+            delete textures[name];
+            textures.erase(name);
+        }
+    }
+
+    ~TextureManager() {
+        for (auto it = textures.begin(); it != textures.end(); ++it) {
+            it->second->free();
+            delete it->second;
+        }
+        textures.clear();
+        sampler.free();
+    }
+};
