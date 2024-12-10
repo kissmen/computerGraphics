@@ -98,6 +98,7 @@ public:
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
         HRESULT hr = dx.device->CreateSamplerState(&samplerDesc, &state);
+        dx.devicecontext->PSSetSamplers(0, 1, &state);
         return SUCCEEDED(hr);
     }
 
