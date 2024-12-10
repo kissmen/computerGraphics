@@ -19,7 +19,7 @@ public:
 
     float fov = 60.0f;     // view field
     float nearPlane = 0.1f;
-    float farPlane = 20000.0f;
+    float farPlane = 100000.0f;
 
     float width;
     float height;

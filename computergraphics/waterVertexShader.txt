@@ -1,0 +1,55 @@
+cbuffer staticMeshBuffer : register(b0)
+{
+    float4x4 W;
+    float4x4 VP;
+};
+
+// Additional parameter buffer for time and other control parameters
+cbuffer waterParams : register(b1)
+{
+    float uTime;   
+    float strength;  // Wave intensity control
+    float scaleVal;  // Wavelength scaling
+    float3 pad;      // Alignment
+}
+
+struct VS_INPUT
+{
+    float3 Pos : POS;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    float2 TexCoords : TEXCOORD;
+};
+
+// Vertex output passed to pixel shader
+struct VS_OUTPUT
+{
+    float4 Pos : SV_POSITION;
+    float2 TexCoords : TEXCOORD;
+};
+
+float calculateSurface(float x, float z, float t, float scale)
+{
+    float y = 0.0;
+    // Multiple sinusoidal superposition on x
+    y += (sin(x * 1.0/scale + t * 1.0) + sin(x * 2.3/scale + t * 1.5) + sin(x * 3.3/scale + t * 0.4)) / 3.0;
+    // Stacking on z
+    y += (sin(z * 0.2/scale + t * 1.8) + sin(z * 1.8/scale + t * 1.8) + sin(z * 2.8/scale + t * 0.8)) / 3.0;
+    return y;
+}
+
+VS_OUTPUT VS(VS_INPUT input)
+{
+    VS_OUTPUT output;
+    float3 pos = input.Pos;
+
+    float baseY = calculateSurface(0.0, 0.0, uTime, scaleVal);
+    float currentY = calculateSurface(pos.x, pos.z, uTime, scaleVal);
+    pos.y += strength * (currentY - baseY);
+
+    float4 worldPos = mul(float4(pos, 1.0), W);
+    output.Pos = mul(worldPos, VP);
+    output.TexCoords = input.TexCoords;
+
+    return output;
+}

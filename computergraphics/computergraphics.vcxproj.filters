@@ -68,5 +68,8 @@
     <ClInclude Include="skydome.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="waterparams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

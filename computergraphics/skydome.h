@@ -15,7 +15,7 @@ public:
     int slices;
     int stacks;
 
-    SkyDome(float r = 10000.0f, int sl = 32, int st = 32) : radius(r), slices(sl), stacks(st) {}
+    SkyDome(float r = 50000.0f, int sl = 64, int st = 64) : radius(r), slices(sl), stacks(st) {}
 
     void createSphereMesh(ID3D11Device* device) {
         std::vector<STATIC_VERTEX> vertices;
@@ -64,7 +64,7 @@ public:
 
     void draw(DXcore* dx, Shader& shader, Camera& camera) {
         // sky dome at camera pos always around camera
-        Matrix44 translation = Matrix44::translation(Vec3(camera.eye.x, camera.eye.y, camera.eye.z));
+        Matrix44 translation = Matrix44::translation(Vec3(camera.eye.x, camera.eye.y + 45000, camera.eye.z));
         shader.updateConstantVS("staticMeshBuffer", "W", &translation);
 
         // DXcore for set Depth of sky
