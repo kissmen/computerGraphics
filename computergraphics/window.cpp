@@ -130,18 +130,18 @@ void Window::processMessages() {
     }
 }
 
-void Window::toggleMouseCapture(bool& mouseCaptured, bool& firstMouseInput) {
-    mouseCaptured = !mouseCaptured;
-
-    if (mouseCaptured) {
-        setCursorVisibility(false);
-        centerCursor();
-        firstMouseInput = true;
-    }
-    else {
-        setCursorVisibility(true);
-    }
-}
+//void Window::toggleMouseCapture(bool& mouseCaptured, bool& firstMouseInput) {
+//    mouseCaptured = !mouseCaptured;
+//
+//    if (mouseCaptured) {
+//        setCursorVisibility(false);
+//        centerCursor();
+//        firstMouseInput = true;
+//    }
+//    else {
+//        setCursorVisibility(true);
+//    }
+//}
 
 void Window::centerCursor() {
     POINT centerPos = { width / 2, height / 2 };

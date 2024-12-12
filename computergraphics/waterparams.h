@@ -25,17 +25,16 @@ public:
 
     ID3D11Buffer* waterCB = nullptr;
 
-    // ?????????????????
     void init(DXcore& dx) {
-        // ?????
+
         params.uTime = 0.0f;
         params.strength = 32.0f;
-        params.scaleVal = 10.0f;
+        params.scaleVal = 10.2f;
         params.uColor[0] = 0.2f;
         params.uColor[1] = 0.6f;
         params.uColor[2] = 1.0f;
 
-        // ??????? (b1)
+        // b1
         D3D11_BUFFER_DESC bd = {};
         bd.Usage = D3D11_USAGE_DEFAULT;
         bd.ByteWidth = sizeof(WaterParamsCB);
@@ -45,11 +44,10 @@ public:
 
         HRESULT hr = dx.device->CreateBuffer(&bd, NULL, &waterCB);
         if (FAILED(hr)) {
-            // ????
+            
         }
     }
 
-    // ???????????
     void update(DXcore& dx, float dt) {
         params.uTime += dt;
         dx.devicecontext->UpdateSubresource(waterCB, 0, NULL, &params, 0, 0);
@@ -59,15 +57,13 @@ public:
     void setScale(float sc) { params.scaleVal = sc; }
     void setColor(float r, float g, float b) { params.uColor[0] = r; params.uColor[1] = g; params.uColor[2] = b; }
 
-    // ?waterCB???VS?PS?b1??
+    // waterCB
     void bindToShader(DXcore& dx) {
         dx.devicecontext->VSSetConstantBuffers(1, 1, &waterCB);
         dx.devicecontext->PSSetConstantBuffers(1, 1, &waterCB);
     }
 
-    // ?????????Shader
-    void bindTextureAndSampler(DXcore& dx, Shader& shader, TextureManager& textureManager, const std::string& textureName) {
-        // ??water.png????textureManager?
+    void waterBTS(DXcore& dx, Shader& shader, TextureManager& textureManager, const std::string& textureName) {
         ID3D11ShaderResourceView* srv = textureManager.find(textureName);
         if (srv) {
             shader.updateTexturePS(&dx, "tex", srv);
@@ -79,7 +75,7 @@ public:
         }
     }
 
-    // ???????Plane
+    // Water plane
     static Mesh createHighResPlane(DXcore& dx, float width = 50.0f, float depth = 200.0f, int xSubdiv = 100, int zSubdiv = 100) {
         std::vector<STATIC_VERTEX> vertices;
         std::vector<unsigned int> indices;

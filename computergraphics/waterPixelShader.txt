@@ -52,7 +52,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     // 基础滚动与简单平移
     uv.x += uTime * 0.04;
-    uv.y += uTime * 0.025;
+    uv.y += uTime * 0.03;
 
     // 使用复合正弦曲线扭曲uv
     uv = distortUV(uv, uTime);
@@ -83,7 +83,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     // 深蓝线条作为阴影：降低其影响强度
     // 假设将原本100%的深蓝线条强度减弱到30%，形成淡淡阴影
     float3 darkBlue = float3(uColor.r * 0.0, uColor.g * 0.0, uColor.b * 0.15);
-    float shadowIntensity = 0.32; // 阴影强度降低到30%
+    float shadowIntensity = 0.15; // 阴影强度降低到30%
     float3 shadowedLineColor = lerp(lineColor1, darkBlue, lineFactor2 * shadowIntensity);
 
     // 若想再加泡沫等效果，可参考之前的waterlayer叠加，这里先略。

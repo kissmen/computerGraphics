@@ -136,6 +136,7 @@
     <ClInclude Include="DXcore.h" />
     <ClInclude Include="GEMLoader.h" />
     <ClInclude Include="geometry.h" />
+    <ClInclude Include="Grass.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="mathLibrary.h" />
     <ClInclude Include="mesh.h" />

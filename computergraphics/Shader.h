@@ -18,6 +18,7 @@ class Shader {
 public:
     ID3D11VertexShader* vertexShader;
     ID3D11PixelShader* pixelShader;
+    ID3D11GeometryShader* geometryShader;
     ID3D11InputLayout* layout;
     ID3D11Buffer* cb;
     ID3D11ShaderResourceView* srv;
@@ -57,6 +58,7 @@ public:
         apply(&dx);
     }
 
+
     void loadVS(DXcore* dx, string vertexShaderHLSL){
         ID3DBlob* compiledVertexShader;
         ID3DBlob* status;
@@ -87,10 +89,12 @@ public:
             { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
+            // New add for instance
+            { "INSTANCEPOSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,1,0,D3D11_INPUT_PER_INSTANCE_DATA,1},
         };
+        UINT numElements = _countof(layoutDesc);
 
-        device->CreateInputLayout(layoutDesc, 4, compiledVertexShader->GetBufferPointer(), compiledVertexShader->GetBufferSize(), &layout);
+        device->CreateInputLayout(layoutDesc, numElements, compiledVertexShader->GetBufferPointer(), compiledVertexShader->GetBufferSize(), &layout);
        
         compiledVertexShader->Release();
     }

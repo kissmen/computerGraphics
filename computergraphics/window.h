@@ -32,7 +32,7 @@ public:
     void processMessages();
 
     // Methods to handle cursor and mouse capture
-    void toggleMouseCapture(bool& mouseCaptured, bool& firstMouseInput);
+  //  void toggleMouseCapture(bool& mouseCaptured, bool& firstMouseInput);
     void centerCursor();
     void setCursorVisibility(bool visible);
 

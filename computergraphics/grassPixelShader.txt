@@ -1,0 +1,34 @@
+cbuffer grassParams : register(b1)
+{
+    float uTime;
+    float strength;
+    float scaleVal;
+    float pad;
+    float3 uColor;
+    float pad2;
+};
+
+Texture2D<float4> grassTex : register(t0);
+Texture2D<float4> noiseTex : register(t1);
+SamplerState samp : register(s0);
+
+struct VS_OUTPUT
+{
+    float4 Pos : SV_POSITION;
+    float2 TexCoords : TEXCOORD;
+};
+
+float4 PS(VS_OUTPUT input) : SV_Target
+{
+    float4 color = grassTex.Sample(samp,input.TexCoords);
+    if(color.a<0.5f)
+        discard;
+
+    // Adapt of colours with noiseTex
+    float2 noiseUV = input.TexCoords*0.5 + float2(uTime*0.02,uTime*0.01);
+    float4 noiseVal = noiseTex.Sample(samp, noiseUV);
+    float brightness = 1.0 + noiseVal.r*0.1;
+
+    float3 finalColor = lerp(uColor, color.rgb,0.5)*brightness;
+    return float4(finalColor,1);
+}
