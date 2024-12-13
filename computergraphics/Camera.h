@@ -13,7 +13,7 @@ public:
     Vec4 up;
     Transform transform;
 
-    float speed = 120.0f;
+    float speed = 160.0f;
     float yaw = 0.0f;
     float pitch = 0.0f;
 

@@ -64,7 +64,7 @@ public:
 
     void draw(DXcore* dx, Shader& shader, Camera& camera) {
         // sky dome at camera pos always around camera
-        Matrix44 translation = Matrix44::translation(Vec3(camera.eye.x, camera.eye.y + 45000, camera.eye.z));
+        Matrix44 translation = Matrix44::translation(Vec3(camera.eye.x, camera.eye.y, camera.eye.z));
         shader.updateConstantVS("staticMeshBuffer", "W", &translation);
 
         // DXcore for set Depth of sky

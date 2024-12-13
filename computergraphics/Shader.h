@@ -27,7 +27,9 @@ public:
     vector<ConstantBuffer> vsConstantBuffers;
     map<string, int> textureBindPointsVS;
     map<string, int> textureBindPointsPS;
+    map<string, ID3D11ShaderResourceView*> vsTextures;
     map<string, ID3D11ShaderResourceView*> psTextures;
+    map<string, ID3D11SamplerState*> vsSamplers;
     map<string, ID3D11SamplerState*> psSamplers;
     bool hasLayout = 1;
 
@@ -147,11 +149,25 @@ public:
         updateConstant(constantBufferName, variableName, data, psConstantBuffers);
     }
 
+    // Update the texture for the vertex shader
+    void updateTextureVS(DXcore* dx, string name, ID3D11ShaderResourceView* textureSRV) {
+        if (textureBindPointsVS.find(name) != textureBindPointsVS.end()) {
+            vsTextures[name] = textureSRV;
+        }
+    }
+
     // Update the texture for the pixel shader and store it for applying later
     void updateTexturePS(DXcore* dx, string name, ID3D11ShaderResourceView* textureSRV) {
         // Ensure the texture name is known by reflection
         if (textureBindPointsPS.find(name) != textureBindPointsPS.end()) {
             psTextures[name] = textureSRV;
+        }
+    }
+
+    // Update the sampler for the vertex shader
+    void updateSamplerVS(DXcore* dx, string name, ID3D11SamplerState* samplerState) {
+        if (textureBindPointsVS.find(name) != textureBindPointsVS.end()) {
+            vsSamplers[name] = samplerState;
         }
     }
     
@@ -181,14 +197,25 @@ public:
         {
             psConstantBuffers[i].upload(dx);
         }
+        // Set VS textures
+        for (auto& tex : vsTextures) {
+            int slot = textureBindPointsVS[tex.first];
+            dx->devicecontext->VSSetShaderResources(slot, 1, &tex.second);
+        }
 
-        // Set textures
+        // Set VS samplers
+        for (auto& samp : vsSamplers) {
+            int slot = textureBindPointsVS[samp.first];
+            dx->devicecontext->VSSetSamplers(slot, 1, &samp.second);
+        }
+
+        // Set PS textures
         for (auto& tex : psTextures) {
             int slot = textureBindPointsPS[tex.first];
             dx->devicecontext->PSSetShaderResources(slot, 1, &tex.second);
         }
 
-        // Set samplers
+        // Set PS samplers
         for (auto& samp : psSamplers) {
             int slot = textureBindPointsPS[samp.first];
             dx->devicecontext->PSSetSamplers(slot, 1, &samp.second);

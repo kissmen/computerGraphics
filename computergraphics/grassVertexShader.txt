@@ -9,10 +9,25 @@ cbuffer grassParams : register(b1)
     float uTime;
     float strength;
     float scaleVal;
-    float pad;
-    float3 uColor;
-    float pad2;
+    float gradientPower;
+
+    float3 BaseColorBottom; float pad1;
+    float3 BaseColorTop;    float pad2;
+    float3 BaseColorThird;  float pad3;
+
+    float WindIntensity;
+    float WindWeight;
+    float SpecularPower;
+    float SpecularIntensity;
+
+    float3 LightDir; float pad4;
+    float areaSize;
+    float3 pad5;
 };
+
+Texture2D<float4> noiseTex : register(t1);
+Texture2D<float4> heightmapTex : register(t2);
+SamplerState samp : register(s0);
 
 struct VS_INPUT
 {
@@ -27,26 +42,57 @@ struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
     float2 TexCoords : TEXCOORD;
+    float factor : TEXCOORD1;
+    float3 worldPos : TEXCOORD2;
+    float3 normal : TEXCOORD3;
+    float2 dynamicUVOffset : TEXCOORD4; // 新增动态UV偏移
 };
 
 VS_OUTPUT VS(VS_INPUT input)
 {
-    float3 worldPos = input.Pos + input.InstancePosition;
-    float height = 20.0f;
-
-    float factor = saturate(worldPos.y/height);
-
-    float swayY = sin(worldPos.x*2.0 + uTime*2.0)*0.1;
-    float swayX = sin(worldPos.z*3.0 + uTime*1.5)*0.05;
-    float swayZ = sin(worldPos.x*3.0 + uTime*1.5)*0.05;
-
-    worldPos.y += swayY*strength*factor;
-    worldPos.x += swayX*strength*factor;
-    worldPos.z += swayZ*strength*factor;
-
-    float4 wpos = mul(float4(worldPos,1),W);
     VS_OUTPUT output;
-    output.Pos = mul(wpos,VP);
+
+    float factor = saturate(1.0 - input.TexCoords.y);
+    factor = pow(factor, gradientPower);
+
+    float3 originalWorldPos = input.Pos + input.InstancePosition;
+    float3 worldPos = originalWorldPos;
+
+    // 风摆动逻辑保持不变
+    float swayY = sin(worldPos.x*2.0 + uTime*2.0)*0.1 * WindIntensity * WindWeight * 10;
+    float swayX = sin(worldPos.z*3.0 + uTime*1.5)*0.05 * WindIntensity * WindWeight * 60;
+    float swayZ = sin(worldPos.x*3.0 + uTime*1.5)*0.05 * WindIntensity * WindWeight * 35;
+
+    float2 noiseUV = (worldPos.xz + float2(areaSize, areaSize)) / (2.0f*areaSize);
+    float noiseVal = noiseTex.SampleLevel(samp, noiseUV, 0).r;
+
+    float2 heightUV = (worldPos.xz + float2(areaSize, areaSize)) / (2.0f * areaSize);
+    float heightVal = heightmapTex.SampleLevel(samp, heightUV, 0).r;
+
+    factor += heightVal * 0.2;
+
+    float extraOffset = noiseVal * 0.1 * factor;
+    worldPos.x += extraOffset;
+    worldPos.z += extraOffset*0.5;
+
+    worldPos.y += swayY*factor;
+    worldPos.x += swayX*factor;
+    worldPos.z += swayZ*factor;
+
+    float3 finalWorldPos = worldPos;
+
+    float4 wpos = mul(float4(finalWorldPos,1), W);
+    output.Pos = mul(wpos, VP);
     output.TexCoords = input.TexCoords * scaleVal;
+    output.factor = factor;
+
+    float3 N = normalize(mul((float3x3)W, input.Normal));
+    output.normal = N;
+    output.worldPos = mul(float4(finalWorldPos,1),W).xyz;
+
+    // 在VS内计算dynamicUVOffset
+    float2 posOffset = (finalWorldPos.xz - originalWorldPos.xz) / (2.0f * areaSize);
+    output.dynamicUVOffset = posOffset;
+
     return output;
 }

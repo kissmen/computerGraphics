@@ -24,10 +24,10 @@ public:
 
     void init(DXcore* dx, TextureManager& textureManager, const string& diffuseTex) {
         vector<STATIC_VERTEX> vertices;
-        vertices.push_back(addVertex(Vec3(-2000, 0, -2000), Vec3(0, 1, 0), 0, 0));
-        vertices.push_back(addVertex(Vec3(2000, 0, -2000), Vec3(0, 1, 0), 1, 0));
-        vertices.push_back(addVertex(Vec3(-2000, 0, 2000), Vec3(0, 1, 0), 0, 1));
-        vertices.push_back(addVertex(Vec3(2000, 0, 2000), Vec3(0, 1, 0), 1, 1));
+        vertices.push_back(addVertex(Vec3(-400, 0, -400), Vec3(0, 1, 0), 0, 0));
+        vertices.push_back(addVertex(Vec3(400, 0, -400), Vec3(0, 1, 0), 1, 0));
+        vertices.push_back(addVertex(Vec3(-400, 0, 400), Vec3(0, 1, 0), 0, 1));
+        vertices.push_back(addVertex(Vec3(400, 0, 400), Vec3(0, 1, 0), 1, 1));
 
         vector<unsigned int> indices = { 2, 1, 0, 1, 2, 3 };
         plane.init(vertices, indices, dx->device);

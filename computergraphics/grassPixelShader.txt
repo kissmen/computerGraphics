@@ -1,34 +1,75 @@
+cbuffer staticMeshBuffer : register(b0)
+{
+    float4x4 W;
+    float4x4 VP;
+};
+
 cbuffer grassParams : register(b1)
 {
     float uTime;
     float strength;
     float scaleVal;
-    float pad;
-    float3 uColor;
-    float pad2;
+    float gradientPower;
+
+    float3 BaseColorBottom; float pad1;
+    float3 BaseColorTop;    float pad2;
+    float3 BaseColorThird;  float pad3;
+
+    float WindIntensity;
+    float WindWeight;
+    float SpecularPower;
+    float SpecularIntensity;
+
+    float3 LightDir; float pad4;
+    float areaSize;
+    float3 pad5;
 };
 
 Texture2D<float4> grassTex : register(t0);
 Texture2D<float4> noiseTex : register(t1);
+Texture2D<float4> heightmapTex : register(t2);
 SamplerState samp : register(s0);
 
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
     float2 TexCoords : TEXCOORD;
+    float factor : TEXCOORD1;
+    float3 worldPos : TEXCOORD2;
+    float3 normal : TEXCOORD3;
+    float2 dynamicUVOffset : TEXCOORD4; // 新增动态UV偏移
 };
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    float4 color = grassTex.Sample(samp,input.TexCoords);
-    if(color.a<0.5f)
+    float4 color = grassTex.Sample(samp, input.TexCoords);
+    if(color.a < 0.5f)
         discard;
 
-    // Adapt of colours with noiseTex
-    float2 noiseUV = input.TexCoords*0.5 + float2(uTime*0.02,uTime*0.01);
-    float4 noiseVal = noiseTex.Sample(samp, noiseUV);
-    float brightness = 1.0 + noiseVal.r*0.1;
+    float2 noiseUV = (input.worldPos.xz + float2(areaSize, areaSize)) / (2.0f * areaSize);
 
-    float3 finalColor = lerp(uColor, color.rgb,0.5)*brightness;
+    // 使用VS传来的dynamicUVOffset
+    noiseUV += input.dynamicUVOffset;
+
+    float2 windDir = float2(0.2, 0.0);
+    noiseUV += windDir * (uTime * 0.06f);
+
+    float4 noiseVal = noiseTex.Sample(samp, noiseUV);
+
+    float2 heightUV = (input.worldPos.xz + float2(areaSize,areaSize)) / (2.0f*areaSize);
+    float heightVal = heightmapTex.Sample(samp, heightUV).r;
+
+    float3 baseColor = lerp(BaseColorBottom, BaseColorTop, input.factor);
+    baseColor = lerp(baseColor, BaseColorThird, heightVal * 0.9);
+
+    float brightness = 1.0 + noiseVal.r*0.7;
+    baseColor *= brightness;
+
+    float3 N = normalize(input.normal);
+    float3 L = normalize(LightDir);
+    float NdL = saturate(dot(N,L));
+
+    float3 finalColor = baseColor * NdL;
+
     return float4(finalColor,1);
 }
