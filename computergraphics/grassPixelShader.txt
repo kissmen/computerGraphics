@@ -52,7 +52,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     noiseUV += input.dynamicUVOffset;
 
     float2 windDir = float2(0.2, 0.0);
-    noiseUV += windDir * (uTime * 0.06f);
+    noiseUV += windDir * (uTime * 0.075f);
 
     float4 noiseVal = noiseTex.Sample(samp, noiseUV);
 
@@ -60,9 +60,9 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float heightVal = heightmapTex.Sample(samp, heightUV).r;
 
     float3 baseColor = lerp(BaseColorBottom, BaseColorTop, input.factor);
-    baseColor = lerp(baseColor, BaseColorThird, heightVal * 0.9);
+    baseColor = lerp(baseColor, BaseColorThird, heightVal * 0.92);
 
-    float brightness = 1.0 + noiseVal.r*0.7;
+    float brightness = 1.0 + noiseVal.r*0.72;
     baseColor *= brightness;
 
     float3 N = normalize(input.normal);

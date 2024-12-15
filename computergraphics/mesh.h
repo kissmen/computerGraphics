@@ -28,12 +28,19 @@ public:
         D3D11_SUBRESOURCE_DATA data;
         memset(&data, 0, sizeof(data));
         data.pSysMem = indices;
-        device->CreateBuffer(&bd, &data, &indexBuffer);
-
+        HRESULT hr= device->CreateBuffer(&bd, &data, &indexBuffer);
+        if (FAILED(hr)) {
+            printf("CreateBuffer for indexBuffer failed. HR=0x%08X\n", hr);
+            exit(0);
+        }
         bd.ByteWidth = vertexSizeInBytes * numVertices;
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         data.pSysMem = vertices;
-        device->CreateBuffer(&bd, &data, &vertexBuffer);
+        hr = device->CreateBuffer(&bd, &data, &vertexBuffer);
+        if (FAILED(hr)) {
+            printf("CreateBuffer for vertexBuffer failed. HR=0x%08X\n", hr);
+            exit(0);
+        }
 
         indicesSize = numIndices;
         strides = vertexSizeInBytes;
@@ -51,6 +58,17 @@ public:
         devicecontext->DrawIndexed(indicesSize, 0, 0);
     }
 };
+
+
+
+
+
+
+
+
+
+
+
 
 //struct Vertex {
 //	Vec3 position;

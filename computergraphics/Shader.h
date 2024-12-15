@@ -32,10 +32,10 @@ public:
     map<string, ID3D11SamplerState*> vsSamplers;
     map<string, ID3D11SamplerState*> psSamplers;
     bool hasLayout = 1;
-
+  //  bool isInstanced = false; 
 
    
-
+    
     // map<string, Shader> shader;
     string readFile(string filename) {
         ifstream file(filename);
@@ -60,6 +60,108 @@ public:
         apply(&dx);
     }
 
+    // For Deferred Shading init 
+    //void init(string vs, string ps, DXcore& dx) {
+    //    string vsShader = readFile(vs);
+    //    if (vsShader.empty()) {
+    //        printf("Failed to read vertex shader file: %s\n", vs.c_str());
+    //        MessageBoxA(NULL, "Vertex shader file not found or empty.", "Error", MB_OK);
+    //        exit(0);
+    //    }
+    //    printf("Shader source for %s:\n%s\n", vs.c_str(), vsShader.c_str());
+    //    string psShader = readFile(ps);
+
+    //    ID3DBlob* compiledVS = nullptr;
+    //    ID3DBlob* vsStatus = nullptr;
+    //    HRESULT hr = D3DCompile(vsShader.c_str(), vsShader.size(), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &compiledVS, &vsStatus);
+    //    if (FAILED(hr)) {
+    //        if (vsStatus) {
+    //            printf("VS Error: %s\n", (char*)vsStatus->GetBufferPointer());
+    //        }else {
+    //            printf("VS compile failed, no error message available.\n");
+    //        }
+    //        MessageBoxA(NULL, "Vertex shader compilation failed. Check console output.", "Error", MB_OK);
+    //        exit(0);
+    //    }
+    //    hr = dx.device->CreateVertexShader(compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), NULL, &vertexShader);
+    //    if (FAILED(hr)) {
+    //        printf("CreateVertexShader failed. HR=0x%08X\n", hr);
+    //        exit(0);
+    //    }
+    //    // VS Reflection
+    //    ConstantBufferReflection reflection;
+    //    reflection.build(&dx, compiledVS, vsConstantBuffers, textureBindPointsVS, ShaderStage::VertexShader);
+
+    //    if (vs.find("NoInst") != std::string::npos) {
+    //        isInstanced = false;
+    //        // ??????????
+    //        D3D11_INPUT_ELEMENT_DESC layoutDescNoInst[] = {
+    //            { "POS",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "TANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0}
+    //        };
+    //        hr = dx.device->CreateInputLayout(layoutDescNoInst, _countof(layoutDescNoInst),
+    //            compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), &layout);
+    //        if (FAILED(hr)) {
+    //            printf("CreateInputLayout for NoInst failed. HR=0x%08X\n", hr);
+    //            exit(0);
+    //        }
+    //    }
+    //    else if (vs.find("Inst") != std::string::npos) {
+    //        isInstanced = true;
+    //        // ?????????
+    //        D3D11_INPUT_ELEMENT_DESC layoutDescInst[] = {
+    //            { "POS",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "TANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "INSTANCEPOSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,1,0,D3D11_INPUT_PER_INSTANCE_DATA,1}
+    //        };
+    //        hr = dx.device->CreateInputLayout(layoutDescInst, _countof(layoutDescInst),
+    //            compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), &layout);
+    //        if (FAILED(hr)) {
+    //            printf("CreateInputLayout for Inst failed. HR=0x%08X\n", hr);
+    //            exit(0);
+    //        }
+    //    }
+    //    else {
+    //        // ????? NoInst ??? Inst????????
+    //        isInstanced = false;
+    //        D3D11_INPUT_ELEMENT_DESC layoutDescNoInst[] = {
+    //            { "POS",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "TANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    //            { "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0}
+    //        };
+    //        hr = dx.device->CreateInputLayout(layoutDescNoInst, _countof(layoutDescNoInst),
+    //            compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), &layout);
+    //        if (FAILED(hr)) {
+    //            printf("CreateInputLayout default(NoInst) failed. HR=0x%08X\n", hr);
+    //            exit(0);
+    //        }
+    //    }
+
+    //    compiledVS->Release();
+
+    //    ID3DBlob* compiledPS = nullptr;
+    //    ID3DBlob* psStatus = nullptr;
+    //    hr = D3DCompile(psShader.c_str(), psShader.size(), NULL, NULL, NULL, "PS", "ps_5_0", 0, 0, &compiledPS, &psStatus);
+    //    if (FAILED(hr)) {
+    //        printf("PS Error: %s\n", (char*)psStatus->GetBufferPointer());
+    //        exit(0);
+    //    }
+    //    hr = dx.device->CreatePixelShader(compiledPS->GetBufferPointer(), compiledPS->GetBufferSize(), NULL, &pixelShader);
+    //    if (FAILED(hr)) {
+    //        printf("CreatePixelShader failed. HR=0x%08X\n", hr);
+    //        exit(0);
+    //    }
+    //    // PS reflection
+    //    reflection.build(&dx, compiledPS, psConstantBuffers, textureBindPointsPS, ShaderStage::PixelShader);
+    //    compiledPS->Release();
+
+    //    apply(&dx);
+    //}
 
     void loadVS(DXcore* dx, string vertexShaderHLSL){
         ID3DBlob* compiledVertexShader;
@@ -100,6 +202,53 @@ public:
        
         compiledVertexShader->Release();
     }
+    // For For Deferred Shading compile
+    /*void compileVSNoInst(ID3D11Device* device, const std::string& vsShader) {
+        ID3DBlob* compiledVS = nullptr;
+        ID3DBlob* status = nullptr;
+        HRESULT hr = D3DCompile(vsShader.c_str(), vsShader.size(), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &compiledVS, &status);
+        if (FAILED(hr)) {
+            printf("%s\n", (char*)status->GetBufferPointer());
+            exit(0);
+        }
+
+        device->CreateVertexShader(compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), NULL, &vertexShader);
+
+        D3D11_INPUT_ELEMENT_DESC layoutDescNoInst[] = {
+            { "POS",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+            { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+            { "TANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+            { "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0},
+        };
+        UINT numElements = _countof(layoutDescNoInst);
+        device->CreateInputLayout(layoutDescNoInst, numElements, compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), &layout);
+
+        compiledVS->Release();
+    }
+
+    void compileVSInst(ID3D11Device* device, const std::string& vsShader) {
+        ID3DBlob* compiledVS = nullptr;
+        ID3DBlob* status = nullptr;
+        HRESULT hr = D3DCompile(vsShader.c_str(), vsShader.size(), NULL, NULL, NULL, "VS", "vs_5_0", 0, 0, &compiledVS, &status);
+        if (FAILED(hr)) {
+            printf("%s\n", (char*)status->GetBufferPointer());
+            exit(0);
+        }
+
+        device->CreateVertexShader(compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), NULL, &vertexShader);
+
+        D3D11_INPUT_ELEMENT_DESC layoutDescInst[] = {
+            { "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+            { "TANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+            { "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT, 0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0},
+            { "INSTANCEPOSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,1,0,D3D11_INPUT_PER_INSTANCE_DATA,1}
+        };
+        UINT numElements = _countof(layoutDescInst);
+        device->CreateInputLayout(layoutDescInst, _countof(layoutDescInst), compiledVS->GetBufferPointer(), compiledVS->GetBufferSize(), &layout);
+
+        compiledVS->Release();
+    }*/
 
     void loadPS(DXcore* dx, string pixelShaderHLSL)
     {

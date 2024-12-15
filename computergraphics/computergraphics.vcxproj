@@ -133,7 +133,9 @@
   <ItemGroup>
     <ClInclude Include="Adapter.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DeferredRenderer.h" />
     <ClInclude Include="DXcore.h" />
+    <ClInclude Include="GBuffer.h" />
     <ClInclude Include="GEMLoader.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="Grass.h" />

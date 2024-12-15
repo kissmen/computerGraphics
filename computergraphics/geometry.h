@@ -35,7 +35,7 @@ public:
     }
 
     void draw(DXcore* dx, Shader& shader) {
-        mt.apply(dx, shader);
+         mt.apply(dx, shader);
         plane.draw(dx->devicecontext);
     }
 };

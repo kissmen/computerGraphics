@@ -1,0 +1,43 @@
+Texture2D tex : register(t0);
+SamplerState samp : register(s0);
+
+struct VS_OUTPUT
+{
+    float4 Pos : SV_POSITION;
+    float3 WorldPos : WORLDPOS;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    float2 TexCoords : TEXCOORD;
+};
+
+// GBuffer Output
+struct GBufferOutput
+{
+    float4 Albedo : SV_Target0;
+    float4 Normal : SV_Target1;
+    float4 Depth  : SV_Target2;
+};
+
+float ComputeLinearDepth(float3 worldPos)
+{
+    // 假设相机在原点,z正向为前方
+    // 通过ViewMatrix和投影逆算线性深度
+    float linearDepth = length(worldPos); 
+    return linearDepth;
+}
+
+GBufferOutput PS(VS_OUTPUT input)
+{
+    GBufferOutput output;
+    float4 baseColor = tex.Sample(samp,input.TexCoords);
+    if(baseColor.a<0.5f) discard; // alpha test
+
+    output.Albedo = baseColor; // RGBA的albedo
+    // Normal压缩到[0,1]
+    float3 N = normalize(input.Normal);
+    output.Normal = float4(N*0.5f+0.5f,1);
+    float linearDepth = ComputeLinearDepth(input.WorldPos);
+    output.Depth = float4(linearDepth,0,0,1);
+
+    return output;
+}

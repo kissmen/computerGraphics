@@ -54,7 +54,8 @@ public:
         HRESULT hr = dx->device->CreateTexture2D(&texDesc, &initData, &texture);
         stbi_image_free(texels);
         if (FAILED(hr)) {
-            return false;
+            printf("CreateTexture2D (texture) failed. HR=0x%08X\n", hr);
+            exit(0);
         }
 
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -65,7 +66,10 @@ public:
         srvDesc.Texture2D.MipLevels = 1;
 
         hr = dx->device->CreateShaderResourceView(texture, &srvDesc, &srv);
-        if (FAILED(hr)) return false;
+        if (FAILED(hr)) {
+            printf("CreateShaderResourceView failed. HR=0x%08X\n", hr);
+            exit(0);
+        }
 
         return true;
     }
@@ -139,6 +143,8 @@ public:
 
             Texture* texture = new Texture();
             if (!texture->loadFromMemory(&dx, (const unsigned char*)fileContent.data(), fileContent.size())) {
+                printf("Failed to load texture %s from memory.\n", filename.c_str());
+                exit(0);
                 std::cerr << "Failed to load texture from memory: " << filename << std::endl;
                 delete texture;
                 continue;

@@ -11,6 +11,8 @@
 #include "skydome.h"
 #include "waterparams.h"
 #include "grass.h"
+#include "GBuffer.h"
+#include "DeferredRenderer.h"
 #include "mathLibrary.h"
 #include <chrono>
 using namespace std;
@@ -47,6 +49,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nC
         "Textures/grassheight.png",
     };
     textureManager.init(dx, textureFiles);
+
+    // For Deferred Shading init
+    /*DeferredRenderer deferred;
+    deferred.init(dx, win.width, win.height, textureManager);*/
 
     Shader shader;
     shader.init("vertexShader.txt", "pixelShader.txt", dx);
@@ -145,10 +151,49 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdline, int nC
         shader.updateConstantVS("staticMeshBuffer", "W", &defaultM);
         shader.updateConstantVS("staticMeshBuffer", "VP", &vp);
         shader.apply(&dx);
-         plane.draw(&dx, shader);
+        plane.draw(&dx, shader);
         // oak.draw(&dx, shader);
 
         dx.present();
+       // deferred.beginGeometryPass(dx);
+
+       // Matrix44 vp = viewM * projectionM;
+
+        // For Deferred Shading init 
+        /*deferred.geometryShaderNoInst.updateConstantVS("staticMeshBuffer", "W", &defaultM);
+        deferred.geometryShaderNoInst.updateConstantVS("staticMeshBuffer", "VP", &vp);
+        ID3D11ShaderResourceView* planeTexSRV = textureManager.find("Textures/plane.jpg");
+        deferred.geometryShaderNoInst.updateTexturePS(&dx, "tex", planeTexSRV);
+        deferred.geometryShaderNoInst.updateSamplerPS(&dx, "samp", textureManager.getSamplerState());
+        deferred.geometryShaderNoInst.apply(&dx);*/
+
+
+       /* dx.setDepthStateSky();
+        sky.draw(&dx, camera);
+        dx.setDepthStateDefault();*/
+       // For Deferred Shading init
+        /*waterParams.update(dx, dt);
+        deferred.geometryShaderNoInst.updateConstantVS("staticMeshBuffer", "W", &waterWorld);
+        deferred.geometryShaderNoInst.updateConstantVS("staticMeshBuffer", "VP", &vp);
+        deferred.geometryShaderNoInst.apply(&dx);*/
+      // waterMesh.draw(dx.devicecontext);
+
+        // For Deferred Shading init 
+        /*deferred.geometryShaderInst.updateConstantVS("staticMeshBuffer", "W", &grassWorld);
+        deferred.geometryShaderInst.updateConstantVS("staticMeshBuffer", "VP", &vp);
+        deferred.geometryShaderInst.apply(&dx);*/
+
+        /*grass.update(dx, dt);
+        grass.draw(dx);*/
+
+        
+      //  deferred.endGeometryPass(dx);
+
+        
+      //  deferred.doLightingPass(dx);
+
+        dx.present();
+
     }
 
     return 0;

@@ -45,12 +45,12 @@ public:
     Grass() : m_instanceBuffer(nullptr), m_instanceCount(0), grassCB(nullptr)
     {
         params.uTime = 0.0f;
-        params.strength = 50.0f;
+        params.strength = 60.0f;
         params.scaleVal = 1.0f;
         params.gradientPower = 1.5f;
 
-        params.BaseColorBottom[0] = 0.6f; params.BaseColorBottom[1] = 0.7f; params.BaseColorBottom[2] = 0.1f; // Bottom
-        params.BaseColorTop[0] = 0.2f; params.BaseColorTop[1] = 0.35f; params.BaseColorTop[2] = 0.15f;       // TOP
+        params.BaseColorBottom[0] = 0.5f; params.BaseColorBottom[1] = 0.7f; params.BaseColorBottom[2] = 0.1f; // Bottom
+        params.BaseColorTop[0] = 0.2f; params.BaseColorTop[1] = 0.4f; params.BaseColorTop[2] = 0.15f;       // TOP
         params.BaseColorThird[0] = 0.18f; params.BaseColorThird[1] = 0.7f; params.BaseColorThird[2] = 0.5f; // OFFSET Color
 
 
@@ -106,8 +106,8 @@ public:
         }
 
         // Three planes of intersecting grass clusters
-        float width = 18.0f;
-        float height = 25.0f;
+        float width = 17.0f;
+        float height = 24.0f;
         float angle = 60.0f * (PI / 180.0f);
         float c = cos(angle);
         float s = sin(angle);
