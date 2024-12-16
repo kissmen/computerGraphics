@@ -150,7 +150,7 @@ public:
 
 		D3D11_DEPTH_STENCIL_DESC skyDSDesc = dsDesc;
 		skyDSDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		skyDSDesc.DepthFunc = D3D11_COMPARISON_ALWAYS; // 修改比较函数为ALWAYS
+		skyDSDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
 		hr= device->CreateDepthStencilState(&skyDSDesc, &skyDepthState);
 		if (FAILED(hr)) {
 			printf("CreateDepthStencilState (sky) failed. HR=0x%08X\n", hr);

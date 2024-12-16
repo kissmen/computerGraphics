@@ -1,0 +1,52 @@
+cbuffer animatedMeshBuffer : register(b0)
+{
+    float4x4 W;
+    float4x4 VP;
+    float4x4 bones[256];
+};
+
+struct VS_INPUT
+{
+    float4 Pos : POS;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    float2 TexCoords : TEXCOORD;
+    uint4 BoneIDs : BONEIDS;
+    float4 BoneWeights : BONEWEIGHTS;
+};
+
+struct PS_INPUT
+{
+    float4 Pos : SV_POSITION;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
+    float2 TexCoords : TEXCOORD;
+};
+
+PS_INPUT VS(VS_INPUT input)
+{
+    PS_INPUT output;
+
+    float4x4 transform = bones[input.BoneIDs[0]] * input.BoneWeights[0];
+    transform += bones[input.BoneIDs[1]] * input.BoneWeights[1];
+    transform += bones[input.BoneIDs[2]] * input.BoneWeights[2];
+    transform += bones[input.BoneIDs[3]] * input.BoneWeights[3];
+
+    float4 blendedPos = mul(input.Pos, transform);
+    blendedPos = mul(blendedPos, W);
+    output.Pos = mul(blendedPos, VP);
+
+    float3 blendedN = mul(input.Normal, (float3x3)transform);
+    blendedN = mul(blendedN, (float3x3)W);
+    blendedN = normalize(blendedN);
+
+    float3 blendedT = mul(input.Tangent, (float3x3)transform);
+    blendedT = mul(blendedT, (float3x3)W);
+    blendedT = normalize(blendedT);
+
+    output.Normal = blendedN;
+    output.Tangent = blendedT;
+    output.TexCoords = input.TexCoords;
+
+    return output;
+}

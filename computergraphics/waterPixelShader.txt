@@ -10,27 +10,26 @@ cbuffer waterParams : register(b1)
     float strength;
     float scaleVal;
     float pad;
-    float3 uColor; // 基础蓝色
+    float3 uColor; // basic blue
     float pad2;
 };
 
 Texture2D<float4> tex : register(t0);
 SamplerState samp : register(s0);
 
-// 一个简单的函数，用来对uv进行复合正弦曲线扭曲
+// Simple functions for complex sinusoidal warping of uv
 float2 distortUV(float2 uv, float t)
 {
-    // 使用四条正弦曲线叠加
-    // 可以调节频率(如4.0,8.0),振幅(0.05),以及相位(uTime*某值)
-    // 使水面看起来更加破碎
+    // Stacking using four sine curves
+    // Frequency  amplitude (0.05) and phase (uTime*some value)
 
-    // 波形1：针对uv.x
+    // Waveform 1 for x
     uv.x += 0.06 * sin(uv.y * 3.0 + t * 1.6);
-    // 波形2：针对uv.y
+    // Waveform 2 for y
     uv.y += 0.05 * sin(uv.x * 2.5 + t * 1.2);
-    // 波形3：再一次对x扰动
+    // Waveform 3 for x
     uv.x += 0.03 * sin(uv.y * 5.0 + t * 0.8);
-    // 波形4：再一次对y扰动
+    // Waveform 4 for y
     uv.y += 0.02 * sin(uv.x * 7.0 + t * 1.0);
 
     return uv;
@@ -44,49 +43,43 @@ struct VS_OUTPUT
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    // 基础UV：从VS传入
+    // uv
     float2 uv = input.TexCoords;
 
-    // 扩大UV范围以获得更多重复，让同一纹理在水面大量平铺
-    uv *= scaleVal; // 例如scaleVal = 20或更大
+    // Same texture tiles repeat on the water surface
+    uv *= scaleVal;
 
-    // 基础滚动与简单平移
+    // Scrolling and panning
     uv.x += uTime * 0.04;
     uv.y += uTime * 0.03;
 
-    // 使用复合正弦曲线扭曲uv
+    // Compound Sine Curve for uv
     uv = distortUV(uv, uTime);
 
-    // 第一次采样用于白色线条
-    // 在原始uv基础上采样
+    // First for white lines and use sample1 as a mask
     float4 sample1 = tex.Sample(samp, frac(uv)); 
-    // 使用sample1作为蒙版，如果sample1较亮则表示线条处
 
-    // 第二次采样用于深蓝线条，稍微偏移uv
-    // 偏移uv使深蓝线条与白色线条不重叠
+    // Second for dark lines and slightly offset uv
+    // Offset uv make dark blue line does not overlap white line
     float2 uv2 = uv + float2(0.15, -0.1);
-    uv2 = distortUV(uv2, uTime * 1.1); // 可以再次扰动，让线条更错位
+    uv2 = distortUV(uv2, uTime * 1.1);
     float4 sample2 = tex.Sample(samp, frac(uv2));
 
-    // 基础颜色为uColor(蓝色)
+    // basic color blue
     float3 baseColor = uColor;
 
-    // 从纹理中获取线条信息
-    // 假设纹理为黑白图案：白为线条，黑为背景
-    // 根据亮度(lineFactor)判定线条强度
+    // Get line info from texture
+    // According to lineFactor to choose line strength
     float lineFactor1 = (sample1.r + sample1.g + sample1.b)/3.0;
     float lineFactor2 = (sample2.r + sample2.g + sample2.b)/3.0;
 
-    // 第一次叠加：白色线条(在亮处叠加白色)
+    // First overlay: white lines on bright area
     float3 lineColor1 = lerp(baseColor, float3(1.0,1.0,1.0), lineFactor1);
 
-    // 深蓝线条作为阴影：降低其影响强度
-    // 假设将原本100%的深蓝线条强度减弱到30%，形成淡淡阴影
+    // Dark blue lines as shadows
     float3 darkBlue = float3(uColor.r * 0.0, uColor.g * 0.0, uColor.b * 0.15);
-    float shadowIntensity = 0.15; // 阴影强度降低到30%
+    float shadowIntensity = 0.15; // Shadows strength
     float3 shadowedLineColor = lerp(lineColor1, darkBlue, lineFactor2 * shadowIntensity);
-
-    // 若想再加泡沫等效果，可参考之前的waterlayer叠加，这里先略。
 
     return float4(shadowedLineColor, 1.0);
 }

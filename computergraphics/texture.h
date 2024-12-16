@@ -10,6 +10,8 @@
 #include <vector>
 #include <iostream>
 
+using namespace std;
+
 class Texture {
     ID3D11Texture2D* texture = nullptr;
     ID3D11ShaderResourceView* srv = nullptr;
@@ -122,30 +124,30 @@ public:
 
 class TextureManager {
 public:
-    std::map<std::string, Texture*> textures;
+    map<string, Texture*> textures;
     Sampler sampler;
 
-    bool init(DXcore& dx, const std::vector<std::string>& filenames) {
+    bool init(DXcore& dx, const vector<string>& filenames) {
         // Initialize sampler once
         if (!sampler.init(dx)) return false;
 
         for (auto& filename : filenames) {
             
-            std::ifstream file(filename, std::ios::binary);
+            ifstream file(filename, ios::binary);
             if (!file) {
-                std::cerr << "Failed to open texture file: " << filename << std::endl;
+                cout << "Failed to open texture file: " << filename << endl;
                 continue;
             }
 
-            std::ostringstream oss;
+            ostringstream oss;
             oss << file.rdbuf();
-            std::string fileContent = oss.str();
+            string fileContent = oss.str();
 
             Texture* texture = new Texture();
             if (!texture->loadFromMemory(&dx, (const unsigned char*)fileContent.data(), fileContent.size())) {
                 printf("Failed to load texture %s from memory.\n", filename.c_str());
                 exit(0);
-                std::cerr << "Failed to load texture from memory: " << filename << std::endl;
+                cout << "Failed to load texture from memory: " << filename << endl;
                 delete texture;
                 continue;
             }
@@ -156,7 +158,27 @@ public:
         return true;
     }
 
-    ID3D11ShaderResourceView* find(const std::string& name) {
+    bool loadFromFile(DXcore* dx, const string& filename) {
+        ifstream file(filename, ios::binary);
+        if (!file) {
+            cout << "Failed to open texture file: " << filename << endl;
+            return false;
+        }
+        ostringstream oss;
+        oss << file.rdbuf();
+        string fileContent = oss.str();
+
+        Texture* texture = new Texture();
+        if (!texture->loadFromMemory(dx, (const unsigned char*)fileContent.data(), fileContent.size())) {
+            cout << "Failed to load texture from " << filename << endl;
+            delete texture;
+            return false;
+        }
+        textures.insert({ filename, texture });
+        return true;
+    }
+
+    ID3D11ShaderResourceView* find(const string& name) {
         auto it = textures.find(name);
         if (it != textures.end()) {
             return it->second->getSRV();
@@ -168,7 +190,7 @@ public:
         return sampler.getState();
     }
 
-    void unload(const std::string& name) {
+    void unload(const string& name) {
         if (textures.find(name) != textures.end()) {
             textures[name]->free();
             delete textures[name];

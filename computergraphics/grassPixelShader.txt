@@ -4,7 +4,7 @@ cbuffer staticMeshBuffer : register(b0)
     float4x4 VP;
 };
 
-cbuffer grassParams : register(b1)
+cbuffer grassParams : register(b2)
 {
     float uTime;
     float strength;
@@ -37,7 +37,7 @@ struct VS_OUTPUT
     float factor : TEXCOORD1;
     float3 worldPos : TEXCOORD2;
     float3 normal : TEXCOORD3;
-    float2 dynamicUVOffset : TEXCOORD4; // 新增动态UV偏移
+    float2 dynamicUVOffset : TEXCOORD4;
 };
 
 float4 PS(VS_OUTPUT input) : SV_Target
@@ -48,7 +48,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     float2 noiseUV = (input.worldPos.xz + float2(areaSize, areaSize)) / (2.0f * areaSize);
 
-    // 使用VS传来的dynamicUVOffset
+    // dynamicUVOffset by vs
     noiseUV += input.dynamicUVOffset;
 
     float2 windDir = float2(0.2, 0.0);

@@ -130,18 +130,18 @@ void Window::processMessages() {
     }
 }
 
-//void Window::toggleMouseCapture(bool& mouseCaptured, bool& firstMouseInput) {
-//    mouseCaptured = !mouseCaptured;
-//
-//    if (mouseCaptured) {
-//        setCursorVisibility(false);
-//        centerCursor();
-//        firstMouseInput = true;
-//    }
-//    else {
-//        setCursorVisibility(true);
-//    }
-//}
+void Window::toggleMouseCapture(bool& mouseCaptured, bool& firstMouseInput) {
+    mouseCaptured = !mouseCaptured;
+
+    if (mouseCaptured) {
+        setCursorVisibility(false);
+        centerCursor();
+        firstMouseInput = true;
+    }
+    else {
+        setCursorVisibility(true);
+    }
+}
 
 void Window::centerCursor() {
     POINT centerPos = { width / 2, height / 2 };
@@ -188,4 +188,9 @@ void Window::handleRawInput(LPARAM lParam) {
     }
 
     delete[] lpb;
+}
+
+void debugPrintFPS(float fps) {
+    std::string msg = "FPS is " + std::to_string(fps) + "\n";
+    OutputDebugStringA(msg.c_str());
 }

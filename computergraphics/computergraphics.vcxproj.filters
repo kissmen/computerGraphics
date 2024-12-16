@@ -80,5 +80,8 @@
     <ClInclude Include="DeferredRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="animationObj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

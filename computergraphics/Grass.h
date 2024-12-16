@@ -7,6 +7,7 @@
 #include "texture.h"
 #include "mathLibrary.h"
 #include <cstdlib>
+using namespace std;
 
 struct GrassParamsCB {
     float uTime;
@@ -14,16 +15,16 @@ struct GrassParamsCB {
     float scaleVal;
     float gradientPower;
 
-    float BaseColorBottom[3]; float pad1;   // 3 floats + 1 float =16 bytes
-    float BaseColorTop[3];    float pad2;   // same pattern
+    float BaseColorBottom[3]; float pad1;
+    float BaseColorTop[3];    float pad2;
     float BaseColorThird[3];  float pad3;
 
     float WindIntensity;
     float WindWeight;
     float SpecularPower;
-    float SpecularIntensity;  //4 floats=16 bytes
+    float SpecularIntensity;
 
-    float LightDir[3]; float pad4;  //3 floats+1 pad =16 bytes
+    float LightDir[3]; float pad4;
 
     float areaSize;
     float pad5[3];
@@ -73,7 +74,7 @@ public:
         m_instanceCount = instanceCount;
         params.areaSize = areaSize;
 
-        std::vector<INSTANCE_DATA> instanceData(instanceCount);
+        vector<INSTANCE_DATA> instanceData(instanceCount);
         for (int i = 0; i < instanceCount; i++) {
             float x = ((float)rand() / RAND_MAX) * areaSize * 2 - areaSize;
             float z = ((float)rand() / RAND_MAX) * areaSize * 2 - areaSize;
@@ -106,8 +107,8 @@ public:
         }
 
         // Three planes of intersecting grass clusters
-        float width = 17.0f;
-        float height = 24.0f;
+        float width = 20.0f;
+        float height = 40.0f;
         float angle = 60.0f * (PI / 180.0f);
         float c = cos(angle);
         float s = sin(angle);
@@ -127,8 +128,8 @@ public:
         STATIC_VERTEX C2 = { {width * c,height,width * s},{0,1,0},{1,0,0},1,0 };
         STATIC_VERTEX C3 = { {-width * c,height,-width * s},{0,1,0},{1,0,0},0,0 };
 
-        std::vector<STATIC_VERTEX> vertices = { A0,A1,A2,A3,B0,B1,B2,B3,C0,C1,C2,C3 };
-        std::vector<unsigned int> indices = { 0,1,2,2,3,0,4,5,6,6,7,4,8,9,10,10,11,8 };
+        vector<STATIC_VERTEX> vertices = { A0,A1,A2,A3,B0,B1,B2,B3,C0,C1,C2,C3 };
+        vector<unsigned int> indices = { 0,1,2,2,3,0,4,5,6,6,7,4,8,9,10,10,11,8 };
         m_mesh.init(vertices, indices, dx.device);
     }
 
@@ -139,11 +140,11 @@ public:
     }
 
     void bindToShader(DXcore& dx) {
-        dx.devicecontext->VSSetConstantBuffers(1, 1, &grassCB);
-        dx.devicecontext->PSSetConstantBuffers(1, 1, &grassCB);
+        dx.devicecontext->VSSetConstantBuffers(2, 1, &grassCB);
+        dx.devicecontext->PSSetConstantBuffers(2, 1, &grassCB);
     }
 
-    void grassBTS(DXcore& dx, Shader& shader, TextureManager& textureManager, const std::string& grassTexName, const std::string& noiseTexName, const std::string& heightmapName) {
+    void grassBTS(DXcore& dx, Shader& shader, TextureManager& textureManager, const string& grassTexName, const string& noiseTexName, const string& heightmapName) {
         ID3D11ShaderResourceView* grassSRV = textureManager.find(grassTexName);
         if (grassSRV) {
             shader.updateTexturePS(&dx, "grassTex", grassSRV);

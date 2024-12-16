@@ -12,6 +12,15 @@ struct STATIC_VERTEX {
     float tv;
 };
 
+struct ANIMATED_VERTEX {
+    Vec3 pos;
+    Vec3 normal;
+    Vec3 tangent;
+    float tu, tv;
+    unsigned int boneIDs[4];
+    float boneWeights[4];
+};
+
 class Mesh {
 public:
     ID3D11Buffer* indexBuffer;
@@ -50,12 +59,21 @@ public:
         init(&vertices[0], sizeof(STATIC_VERTEX), (int)vertices.size(), &indices[0], (int)indices.size(), device);
     }
 
+    void aniinit(ID3D11Device* device, std::vector<ANIMATED_VERTEX>& vertices, std::vector<unsigned int>& indices) {
+        init(&vertices[0], sizeof(ANIMATED_VERTEX), (int)vertices.size(), &indices[0], (int)indices.size(), device);
+    }
+
     void draw(ID3D11DeviceContext* devicecontext) {
         UINT offsets = 0;
         devicecontext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         devicecontext->IASetVertexBuffers(0, 1, &vertexBuffer, &strides, &offsets);
         devicecontext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
         devicecontext->DrawIndexed(indicesSize, 0, 0);
+    }
+
+    void release() {
+        if (indexBuffer) { indexBuffer->Release(); indexBuffer = nullptr; }
+        if (vertexBuffer) { vertexBuffer->Release(); vertexBuffer = nullptr; }
     }
 };
 

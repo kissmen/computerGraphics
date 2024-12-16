@@ -14,8 +14,9 @@ public:
     float radius;
     int slices;
     int stacks;
+    float rotateAngle;
 
-    SkyDome(float r = 50000.0f, int sl = 64, int st = 64) : radius(r), slices(sl), stacks(st) {}
+    SkyDome(float r = 50000.0f, int sl = 64, int st = 64) : radius(r), slices(sl), stacks(st), rotateAngle(0.0f) {}
 
     void createSphereMesh(ID3D11Device* device) {
         std::vector<STATIC_VERTEX> vertices;
@@ -65,7 +66,14 @@ public:
     void draw(DXcore* dx, Shader& shader, Camera& camera) {
         //// sky dome at camera pos always around camera
         Matrix44 translation = Matrix44::translation(Vec3(camera.eye.x, camera.eye.y, camera.eye.z));
-        shader.updateConstantVS("staticMeshBuffer", "W", &translation);
+
+        // Rotation matrix around Y
+        Matrix44 rotation = Matrix44::rotateY(rotateAngle);
+
+        // Combined
+        Matrix44 worldMatrix = rotation * translation;
+
+        shader.updateConstantVS("staticMeshBuffer", "W", &worldMatrix);
 
         // DXcore for set Depth of sky
         dx->setDepthStateSky();

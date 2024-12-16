@@ -4,7 +4,7 @@ cbuffer staticMeshBuffer : register(b0)
     float4x4 VP;
 };
 
-cbuffer grassParams : register(b1)
+cbuffer grassParams : register(b2)
 {
     float uTime;
     float strength;
@@ -45,7 +45,7 @@ struct VS_OUTPUT
     float factor : TEXCOORD1;
     float3 worldPos : TEXCOORD2;
     float3 normal : TEXCOORD3;
-    float2 dynamicUVOffset : TEXCOORD4; // 新增动态UV偏移
+    float2 dynamicUVOffset : TEXCOORD4;
 };
 
 VS_OUTPUT VS(VS_INPUT input)
@@ -58,7 +58,7 @@ VS_OUTPUT VS(VS_INPUT input)
     float3 originalWorldPos = input.Pos + input.InstancePosition;
     float3 worldPos = originalWorldPos;
 
-    // 风摆动逻辑保持不变
+    // wind sway
     float swayY = sin(worldPos.x*2.0 + uTime*2.0)*0.1 * WindIntensity * WindWeight * 10;
     float swayX = sin(worldPos.z*3.0 + uTime*1.5)*0.05 * WindIntensity * WindWeight * 60;
     float swayZ = sin(worldPos.x*3.0 + uTime*1.5)*0.05 * WindIntensity * WindWeight * 35;
@@ -90,7 +90,7 @@ VS_OUTPUT VS(VS_INPUT input)
     output.normal = N;
     output.worldPos = mul(float4(finalWorldPos,1),W).xyz;
 
-    // 在VS内计算dynamicUVOffset
+    // get dynamicUVOffset
     float2 posOffset = (finalWorldPos.xz - originalWorldPos.xz) / (2.0f * areaSize);
     output.dynamicUVOffset = posOffset;
 

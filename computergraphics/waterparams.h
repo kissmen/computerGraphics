@@ -8,7 +8,7 @@
 #include "mesh.h"
 #include "texture.h" // TextureManager
 
-using namespace DirectX;
+using namespace std;
 
 class WaterParams {
 public:
@@ -28,10 +28,10 @@ public:
     void init(DXcore& dx) {
 
         params.uTime = 0.0f;
-        params.strength = 32.0f;
-        params.scaleVal = 10.2f;
-        params.uColor[0] = 0.2f;
-        params.uColor[1] = 0.6f;
+        params.strength = 80.0f;
+        params.scaleVal = 18.0f;
+        params.uColor[0] = 0.25f;
+        params.uColor[1] = 0.45f;
         params.uColor[2] = 1.0f;
 
         // b1
@@ -63,7 +63,7 @@ public:
         dx.devicecontext->PSSetConstantBuffers(1, 1, &waterCB);
     }
 
-    void waterBTS(DXcore& dx, Shader& shader, TextureManager& textureManager, const std::string& textureName) {
+    void waterBTS(DXcore& dx, Shader& shader, TextureManager& textureManager, const string& textureName) {
         ID3D11ShaderResourceView* srv = textureManager.find(textureName);
         if (srv) {
             shader.updateTexturePS(&dx, "tex", srv);
@@ -77,8 +77,8 @@ public:
 
     // Water plane
     static Mesh createHighResPlane(DXcore& dx, float width = 50.0f, float depth = 200.0f, int xSubdiv = 100, int zSubdiv = 100) {
-        std::vector<STATIC_VERTEX> vertices;
-        std::vector<unsigned int> indices;
+        vector<STATIC_VERTEX> vertices;
+        vector<unsigned int> indices;
 
         float halfWidth = width * 0.5f;
         float halfDepth = depth * 0.5f;

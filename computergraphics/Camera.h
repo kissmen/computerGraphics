@@ -96,7 +96,7 @@ public:
     }
 
     void mouseInput(float deltaX, float deltaY) {
-        const float sensitivity = 0.002f;
+        const float sensitivity = 0.004f;
         yaw += deltaX * sensitivity;
         pitch -= deltaY * sensitivity;
 
